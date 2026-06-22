@@ -134,3 +134,4 @@ dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:sil
 dotnet_code_quality_unused_parameters = all:suggestion
 dotnet_style_allow_statement_immediately_after_block_experimental = true:silent
 dotnet_style_allow_multiple_blank_lines_experimental = true:silent
+indent_style = tab
