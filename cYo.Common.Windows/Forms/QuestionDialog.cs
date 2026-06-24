@@ -43,6 +43,12 @@ namespace cYo.Common.Windows.Forms
 			set;
 		}
 
+		public bool Option2Exclusive
+		{
+			get;
+			set;
+		}
+
 		public Image Image
 		{
 			get;
@@ -75,59 +81,52 @@ namespace cYo.Common.Windows.Forms
 				Label label = lblDescription;
 				label.Text = label.Text + ((i > 1) ? "\n" : string.Empty) + array[i];
 			}
+
 			if (OkButtonText != null)
-			{
 				btOK.Text = OkButtonText;
-			}
+
 			if (CancelButtonText != null)
-			{
 				btCancel.Text = CancelButtonText;
-			}
+
 			lblDescription.Visible = array.Length > 1;
 			if (!string.IsNullOrEmpty(OptionText))
 			{
 				chkOption.Checked = OptionText.StartsWith("!");
 				if (chkOption.Checked)
-				{
 					OptionText = OptionText.Substring(1);
-				}
 			}
+
 			if (!string.IsNullOrEmpty(Option2Text))
 			{
 				chkOption2.Checked = Option2Text.StartsWith("!");
 				if (chkOption2.Checked)
-				{
 					Option2Text = Option2Text.Substring(1);
-				}
 			}
 			chkOption.Text = OptionText;
 			chkOption.Visible = !string.IsNullOrEmpty(OptionText);
 			chkOption2.Text = Option2Text;
-			chkOption2.Visible = (Option2Independent || chkOption.Checked) && !string.IsNullOrEmpty(Option2Text);
-			if (!Option2Independent)
-			{
+			chkOption2.Visible = (Option2Independent || Option2Exclusive || chkOption.Checked) && !string.IsNullOrEmpty(Option2Text);
+
+			if (!Option2Independent && !Option2Exclusive)
 				chkOption2.Margin = new Padding(32, 0, 0, 0);
-			}
+
 			btCancel.Visible = ShowCancel;
 			if (owner == null)
-			{
 				base.StartPosition = FormStartPosition.CenterScreen;
-			}
+
 			QuestionResult questionResult = ShowDialog(owner) != DialogResult.OK ? QuestionResult.Cancel : QuestionResult.Ok;
 			if (chkOption.Checked)
-			{
 				questionResult |= QuestionResult.Option;
-			}
+
 			if (chkOption2.Checked)
-			{
 				questionResult |= QuestionResult.Option2;
-			}
+
 			return questionResult;
 		}
 
 		public static QuestionResult AskQuestion(IWin32Window owner, string question, string okText, string optionText = null, Image image = null, bool showCancel = true, string cancelText = null, string option2Text = null)
 		{
-			return AskQuestion(owner, question, okText, delegate(QuestionDialog qd)
+			return AskQuestion(owner, question, okText, (QuestionDialog qd) =>
 			{
 				qd.CancelButtonText = cancelText;
 				qd.OptionText = optionText;
@@ -150,15 +149,22 @@ namespace cYo.Common.Windows.Forms
 
 		public static bool Ask(IWin32Window owner, string question, string okButtonText)
 		{
-			return AskQuestion(owner, question, okButtonText, (Action<QuestionDialog>)null) == QuestionResult.Ok;
+			return AskQuestion(owner, question, okButtonText, null) == QuestionResult.Ok;
 		}
 
 		private void chkOption_CheckedChanged(object sender, EventArgs e)
 		{
-			if (!Option2Independent)
-			{
+			if (!Option2Independent && !Option2Exclusive)
 				chkOption2.Visible = chkOption.Checked && !string.IsNullOrEmpty(chkOption2.Text);
-			}
+
+			if (Option2Exclusive && chkOption.Checked && chkOption2.Checked)
+				chkOption2.Checked = false;
+		}
+
+		private void chkOption2_CheckedChanged(object sender, EventArgs e)
+		{
+			if (Option2Exclusive && chkOption2.Checked && chkOption.Checked)
+				chkOption.Checked = false;
 		}
 	}
 }

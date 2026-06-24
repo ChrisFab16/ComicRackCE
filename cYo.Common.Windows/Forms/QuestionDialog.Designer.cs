@@ -155,10 +155,11 @@ namespace cYo.Common.Windows.Forms
             this.chkOption2.TextAlign = System.Drawing.ContentAlignment.TopLeft;
             this.chkOption2.UseVisualStyleBackColor = true;
             this.chkOption2.Visible = false;
-            // 
-            // buttonFlow
-            // 
-            this.buttonFlow.Anchor = System.Windows.Forms.AnchorStyles.Right;
+			this.chkOption2.CheckedChanged += new System.EventHandler(this.chkOption2_CheckedChanged);
+			// 
+			// buttonFlow
+			// 
+			this.buttonFlow.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.buttonFlow.AutoSize = true;
             this.buttonFlow.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.buttonFlow.Controls.Add(this.btOK);
