@@ -1109,39 +1109,19 @@ namespace cYo.Projects.ComicRack.Viewer
 				e.Cancel = true;
 				return;
 			}
-			if (Program.Settings.UpdateComicFiles)
-			{
-				HashSet<ComicBook> dirtyTempList = Program.BookFactory.TemporaryBooks.Where((ComicBook cb) => cb.ComicInfoIsDirty).ToHashSet();
-				if (Program.Settings.UpdateComicBookFiles)
-					dirtyTempList.AddRange(Program.BookFactory.TemporaryBooks.Where((ComicBook cb) => cb.ComicBookIsDirty));
 
-				int dirtyCount = dirtyTempList.Count();
-				if (dirtyCount != 0 && Program.AskQuestion(this, TR.Messages["AskDirtyItems", "Save changed information for Books that are not in the database?\nAll changes not saved now will be lost!"], TR.Default["Save", "Save"], HiddenMessageBoxes.AskDirtyItems, TR.Messages["AlwaysSaveDirty", "Always save changes"], TR.Default["No", "No"]))
-				{
-					AutomaticProgressDialog.Process(this, TR.Messages["SaveInfo", "Saving Book Information"], TR.Messages["SaveInfoText", "Please wait while all unsaved information is stored!"], 5000, delegate
-					{
-						int num = 0;
-						foreach (ComicBook item in dirtyTempList)
-						{
-							if (AutomaticProgressDialog.ShouldAbort)
-							{
-								break;
-							}
-							AutomaticProgressDialog.Value = num++ * 100 / dirtyCount;
-							Program.QueueManager.WriteInfoToFileWithCacheUpdate(item);
-						}
-					}, AutomaticProgressDialogOptions.EnableCancel);
-				}
-			}
+			// Save dirty books on exit
+			SaveDirtyBooks(); 
+
 			if ((Program.QueueManager.IsActive || Program.BackupManager.IsBackupActive) && !QuestionDialog.Ask(this, TR.Messages["BackgroundConvert", "Files are still being updated/converted/synchronized in the background. If you close now, some information will not be written!"], TR.Messages["CloseComicRack", "Close ComicRack"]))
 			{
 				e.Cancel = true;
 				return;
 			}
+
 			if (ScriptUtility.Enabled)
-			{
 				Program.Settings.PluginsStates = ScriptUtility.Scripts.CommandStates;
-			}
+
 			Program.Settings.LastOpenFiles.Clear();
 			Program.Settings.LastOpenFiles.AddRange(books.OpenFiles);
 			StoreWorkspace();
@@ -1161,6 +1141,60 @@ namespace cYo.Projects.ComicRack.Viewer
 			{
 				readerForm.Dispose();
 				readerForm = null;
+			}
+		}
+
+		private void SaveDirtyBooks()
+		{
+			if (Program.Settings.UpdateComicFiles)
+			{
+				HashSet<ComicBook> dirtyTempList = Program.BookFactory.TemporaryBooks.Where((ComicBook cb) => cb.ComicInfoIsDirty).ToHashSet();
+				if (Program.Settings.UpdateComicBookFiles)
+					dirtyTempList.AddRange(Program.BookFactory.TemporaryBooks.Where((ComicBook cb) => cb.ComicBookIsDirty));
+
+				int dirtyCount = dirtyTempList.Count();
+				bool askDirtyItems = Program.Settings.HiddenMessageBoxes.HasFlag(HiddenMessageBoxes.AskDirtyItems);
+				bool neverAskDirtyItems = Program.Settings.HiddenMessageBoxes.HasFlag(HiddenMessageBoxes.NeverAskDirtyItems);
+
+				if (dirtyCount != 0)
+				{
+					if (!askDirtyItems && !neverAskDirtyItems) // Neither options are on, so we should ask
+					{
+						QuestionResult qr = QuestionDialog.AskQuestion(this, TR.Messages["AskDirtyItems", "Save changed information for Books that are not in the database?\nAll changes not saved now will be lost!"], TR.Default["Save", "Save"], qd =>
+						{
+							qd.Option2Exclusive = true;
+							qd.OptionText = TR.Messages["AlwaysSaveDirty", "Always save changes"];
+							qd.Option2Text = TR.Messages["NeverSaveDirty", "Never save changes"];
+							qd.CancelButtonText = TR.Default["No", "No"];
+						});
+
+						if (qr.HasFlag(QuestionResult.OkWithOption)) // Always Save checked
+						{
+							Program.Settings.HiddenMessageBoxes |= HiddenMessageBoxes.AskDirtyItems;
+							askDirtyItems = true;
+						}
+
+						if (qr.HasFlag(QuestionResult.Ok) && qr.HasFlag(QuestionResult.Option2)) // Never Save checked
+							Program.Settings.HiddenMessageBoxes |= HiddenMessageBoxes.NeverAskDirtyItems;
+					}
+
+					if (askDirtyItems)
+					{
+						AutomaticProgressDialog.Process(this, TR.Messages["SaveInfo", "Saving Book Information"], TR.Messages["SaveInfoText", "Please wait while all unsaved information is stored!"], 5000, delegate
+						{
+							int num = 0;
+							foreach (ComicBook item in dirtyTempList)
+							{
+								if (AutomaticProgressDialog.ShouldAbort)
+								{
+									break;
+								}
+								AutomaticProgressDialog.Value = num++ * 100 / dirtyCount;
+								Program.QueueManager.WriteInfoToFileWithCacheUpdate(item);
+							}
+						}, AutomaticProgressDialogOptions.EnableCancel);
+					}
+				}
 			}
 		}
 
@@ -3375,10 +3409,10 @@ namespace cYo.Projects.ComicRack.Viewer
 				if (e.IsComicInfo)
 					e.Book.ComicInfoIsDirty = true;
 
-                if (e.IsComicBook && !e.Book.IsDynamicSource)
-                    e.Book.ComicBookIsDirty = true;
+				if (e.IsComicBook && !e.Book.IsDynamicSource)
+					e.Book.ComicBookIsDirty = true;
 
-                if (!books.IsOpen(e.Book))
+				if (!books.IsOpen(e.Book))
 					Program.QueueManager.AddBookToFileUpdate(e.Book);
 			}
 		}
@@ -3430,9 +3464,9 @@ namespace cYo.Projects.ComicRack.Viewer
 			}
 			else if (Program.QueueManager.UpdateErrors.Count != 0)
 			{
-                ShowErrorsDialog.ShowErrors(this, Program.QueueManager.UpdateErrors, ShowErrorsDialog.UpdateErrorConverter);
-            }
-            else
+				ShowErrorsDialog.ShowErrors(this, Program.QueueManager.UpdateErrors, ShowErrorsDialog.UpdateErrorConverter);
+			}
+			else
 			{
 				ShowPendingTasks();
 			}

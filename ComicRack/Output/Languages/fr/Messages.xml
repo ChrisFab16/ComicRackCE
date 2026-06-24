@@ -82,7 +82,8 @@
     <Text Key="CouldNotImportKeyboardLayout" Text="Impossible d'importer la configuration clavier !\nRaison : {0}" Comment="Could not import Keyboard Layout!\nReason: {0}" />
     <Text Key="CouldNotLoadThumbnail" Text="Impossible d'afficher la miniature !\nRaison : {0}" Comment="Could not open Thumbnail!\nReason: {0}" />
     <Text Key="ListLayouts" Text="Affichages des Listes" Comment="List Layouts" />
-    <Text Key="AlwaysSaveDirty" Text="Toujours sauvegarder" Comment="Always save changes" />
+	<Text Key="AlwaysSaveDirty" Text="Toujours sauvegarder" Comment="Always save changes" />
+	<Text Key="NeverSaveDirty" Text="Ne jamais sauvegarder" Comment="Never save changes" />
     <Text Key="ImportReadingList" Text="Importer Liste de lecture" Comment="Import Reading List" />
     <Text Key="MatchBooksWithLibrary" Text="Faire correspondre la Liste à la Bibliothèque" Comment="Matching list with Library" />
     <Text Key="ListMore" Text="{0} de plus..." Comment="{0} more..." />
