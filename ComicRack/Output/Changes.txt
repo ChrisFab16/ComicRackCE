@@ -13,7 +13,10 @@ Community Edition Build 0.9.184:
 * NEW: Failure to update book info will now show an error message instead of silently failing.
 * NEW: Updating book info can now update multiple books at the same time.
 * NEW: Added "MaximumUpdateThreads" setting in ComicRack.ini to configure the number of books that will update concurrently. Default is 2. (based on processor count and 32 as max)
-* NEW: Added the standalone 7-Zip executable for use on 64-bit system (this only affects updating, unless you've changed to use the 7-Zip exe in ComicRack.ini).
+* NEW: Added 64-bit 7-Zip executable instead of always using the 32-bit (this only affects updating, unless you've changed to use the 7-Zip exe in ComicRack.ini).
+* NEW: Enable aborting of update tasks. Will clear the queue, but you still need to let the current items finish.
+* NEW: Added an option to never ask to save dirty files on exit.
+* NEW: Allow typing a network/UNC path when adding Library Folders (by EvilPrime98).
 
 
 * CHANGE: Updated French Translation. It is now the default localization used as a base when updating translations (See Wiki for instructions on updating other languages).
@@ -28,6 +31,8 @@ Community Edition Build 0.9.184:
 * CHANGE: Group sorting is now case insensitive.
 * CHANGE: The dirty flag (orange update star) will be cleared upon exporting with the "Embed Info" options enabled and replacing the file.
 * CHANGE: Doubled maximum tile height from 256 to 512.
+* CHANGE: Moved native dll's to their own x86/x64 folder. The installer will remove the old files before installing the new ones. 
+    If you are using the zip file, you should manually delete the old files before running the new version.
 
 
 * UPDATE: Updated 7-Zip to 26.01
@@ -35,6 +40,12 @@ Community Edition Build 0.9.184:
 * UPDATE: Updated SharpCompress to 0.48.0
 * UPDATE: Updated System.Text.Json to 10.0.5
 * UPDATE: Updated various transient Microsoft packages to 10.0.5
+* UPDATE: Updated libwebp to 1.6.0#2
+* UPDATE: Updated HEIF/AVIF binaries
+    - aom to 3.13.3
+    - libde265 to 1.1.1
+    - libheif to 1.23.0#1
+    - libx265 to 4.1#1
 
 
 * BUGFIX: Fixed the Paste Data dialog failing to open when the book metadata contained unparsed elements.
