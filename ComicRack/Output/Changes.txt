@@ -35,7 +35,7 @@ Community Edition Build 0.9.184:
     If you are using the zip file, you should manually delete the old files before running the new version.
 
 
-* UPDATE: Updated 7-Zip to 26.01
+* UPDATE: Updated 7-Zip to 26.02
 * UPDATE: Updated PDFium to 148
 * UPDATE: Updated SharpCompress to 0.48.0
 * UPDATE: Updated System.Text.Json to 10.0.5
