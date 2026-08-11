@@ -36,10 +36,11 @@ Community Edition Build 0.9.184:
 
 
 * UPDATE: Updated 7-Zip to 26.02
-* UPDATE: Updated PDFium to 148
-* UPDATE: Updated SharpCompress to 0.48.0
-* UPDATE: Updated System.Text.Json to 10.0.5
-* UPDATE: Updated various transient Microsoft packages to 10.0.5
+* UPDATE: Updated PDFium to 153
+* UPDATE: Updated SharpCompress to 0.50.4
+* UPDATE: Updated MySqlConnector to 2.6.1
+* UPDATE: Updated System.Text.Json to 10.0.10
+* UPDATE: Updated various transient Microsoft packages to 10.0.10
 * UPDATE: Updated libwebp to 1.6.0#2
 * UPDATE: Updated HEIF/AVIF binaries
     - aom to 3.13.3
