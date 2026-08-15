@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         submodules: recursive
 
@@ -52,7 +52,7 @@ jobs:
         curl -L -o ComicRack\bin\Release\net48\_CommonRedist\vc_redist.x64.exe https://aka.ms/vs/17/release/vc_redist.x64.exe
 
     - name: Compile installer
-      uses: Minionguyjpro/Inno-Setup-Action@v1.2.8
+      uses: Minionguyjpro/Inno-Setup-Action@v1.2.9
       with:
         path: Installer.iss
         options: |
@@ -84,7 +84,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
 
     - name: Publish Winget manifest
       uses: vedantmgoyal9/winget-releaser@main
