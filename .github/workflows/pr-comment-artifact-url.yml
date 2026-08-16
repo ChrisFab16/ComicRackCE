@@ -62,7 +62,7 @@ jobs:
           echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_ENV"
 
       - name: Find Comment
-        uses: peter-evans/find-comment@v3
+        uses: peter-evans/find-comment@v4
         id: find-comment
         with:
           issue-number: ${{ env.PR_NUMBER }}
@@ -74,7 +74,7 @@ jobs:
           ARTIFACT_URL: "https://nightly.link/${{ github.repository }}/suites/${{ env.SUITE_ID }}/artifacts/${{ env.ARTIFACT_ID }}"
           # HEAD_SHA: "${{ env.HEAD_SHA }}" # empty from a forked repo
           HEAD_SHA: "${{ github.event.workflow_run.head_sha }}"
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ env.PR_NUMBER }}
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
