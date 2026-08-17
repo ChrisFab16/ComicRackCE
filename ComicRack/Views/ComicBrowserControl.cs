@@ -2619,7 +2619,8 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 
         public void MarkSelectedRead()
         {
-            foreach (ComicBook book in GetBookList(ComicBookFilterType.Library | ComicBookFilterType.Selected, asArray: true))
+			ComicBookFilterType bookFilterType = Program.Settings.UpdateComicBookFiles ? ComicBookFilterType.Selected : ComicBookFilterType.Selected | ComicBookFilterType.Library;
+			foreach (ComicBook book in GetBookList(bookFilterType, asArray: true))
             {
                 book.MarkAsRead();
             }
@@ -2627,7 +2628,8 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 
         public void MarkSelectedNotRead()
         {
-            foreach (ComicBook book in GetBookList(ComicBookFilterType.Library | ComicBookFilterType.Selected, asArray: true))
+			ComicBookFilterType bookFilterType = Program.Settings.UpdateComicBookFiles ? ComicBookFilterType.Selected : ComicBookFilterType.Selected | ComicBookFilterType.Library;
+			foreach (ComicBook book in GetBookList(bookFilterType, asArray: true))
             {
                 book.MarkAsNotRead();
             }
@@ -2635,7 +2637,8 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 
         public void MarkSelectedChecked()
         {
-            foreach (ComicBook book in GetBookList(ComicBookFilterType.Library | ComicBookFilterType.Selected, asArray: true))
+			ComicBookFilterType bookFilterType = Program.Settings.UpdateComicBookFiles ? ComicBookFilterType.Selected : ComicBookFilterType.Selected | ComicBookFilterType.Library;
+			foreach (ComicBook book in GetBookList(bookFilterType, asArray: true))
             {
                 book.Checked = true;
             }
@@ -2643,7 +2646,8 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 
         public void MarkSelectedUnchecked()
         {
-            foreach (ComicBook book in GetBookList(ComicBookFilterType.Library | ComicBookFilterType.Selected, asArray: true))
+			ComicBookFilterType bookFilterType = Program.Settings.UpdateComicBookFiles ? ComicBookFilterType.Selected : ComicBookFilterType.Selected | ComicBookFilterType.Library;
+			foreach (ComicBook book in GetBookList(bookFilterType, asArray: true))
             {
                 book.Checked = false;
             }
@@ -2872,30 +2876,27 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 
         private void contextMenuItems_Opening(object sender, CancelEventArgs e)
         {
-            IEnumerable<ComicBook> enumerable = GetBookList(ComicBookFilterType.Selected);
-            IEnumerable<ComicBook> enumerable2 = GetBookList(ComicBookFilterType.Library | ComicBookFilterType.Selected);
-            IEnumerable<ComicBook> list = GetBookList(ComicBookFilterType.NotInLibrary | ComicBookFilterType.Selected);
-            CoverViewItem coverViewItem = itemView.FocusedItem as CoverViewItem;
-            bool flag = ComicEditMode.CanEditProperties();
-            bool flag2 = ComicEditMode.CanEditList();
-            bool flag3 = !enumerable2.IsEmpty();
-            miAddLibrary.Visible = !list.IsEmpty();
-            miEdit.Visible = flag && itemView.ItemViewMode == ItemViewMode.Detail;
-            miShowWeb.Visible = coverViewItem != null && coverViewItem.Comic != null && !string.IsNullOrEmpty(coverViewItem.Comic.Web);
-            ToolStripMenuItem toolStripMenuItem = miMarkAs;
-            bool visible = (miRateMenu.Visible = flag && flag3);
-            toolStripMenuItem.Visible = visible;
-            miResetTopOfStack.Visible = !(miSetTopOfStack.Visible = openStackPanel.Visible) && itemView.IsStack(itemView.SelectedItems.FirstOrDefault());
+            IEnumerable<ComicBook> selectedBooks = GetBookList(ComicBookFilterType.Selected);
+            IEnumerable<ComicBook> selectedBooksInLibrary = GetBookList(ComicBookFilterType.Library | ComicBookFilterType.Selected);
+            IEnumerable<ComicBook> selectedBooksNotInLibrary = GetBookList(ComicBookFilterType.NotInLibrary | ComicBookFilterType.Selected);
+            CoverViewItem focusedCoverViewItem = itemView.FocusedItem as CoverViewItem;
+            bool canEditProperties = ComicEditMode.CanEditProperties();
+            bool canEditList = ComicEditMode.CanEditList();
+            bool hasSelectedBooksInLibrary = !selectedBooksInLibrary.IsEmpty();
+            bool isVisibleForSelectedNotInLibrary = !selectedBooksNotInLibrary.IsEmpty() && Program.Settings.UpdateComicBookFiles; // Enable menu when Allow writing of library info is enabled for non library books
+			miAddLibrary.Visible = !selectedBooksNotInLibrary.IsEmpty();
+            miEdit.Visible = canEditProperties && itemView.ItemViewMode == ItemViewMode.Detail;
+            miShowWeb.Visible = focusedCoverViewItem != null && focusedCoverViewItem.Comic != null && !string.IsNullOrEmpty(focusedCoverViewItem.Comic.Web);
+			miRateMenu.Visible = miMarkAs.Visible = canEditProperties && (isVisibleForSelectedNotInLibrary || hasSelectedBooksInLibrary);
+			miResetTopOfStack.Visible = !(miSetTopOfStack.Visible = openStackPanel.Visible) && itemView.IsStack(itemView.SelectedItems.FirstOrDefault());
             miSetStackThumbnail.Visible = itemView.IsStack(itemView.SelectedItems.FirstOrDefault());
             miRemoveStackThumbnail.Visible = stacksConfig != null && !string.IsNullOrEmpty(stacksConfig.GetStackCustomThumbnail(itemView.GetStackCaption(itemView.SelectedItems.FirstOrDefault())));
-            ComicLibrary comicLibrary = enumerable2.Select((ComicBook cb) => cb.Container as ComicLibrary).FirstOrDefault();
-            miAddList.Visible = comicLibrary != null && !comicLibrary.ComicLists.GetItems<ComicIdListItem>().IsEmpty() && flag3;
+            ComicLibrary comicLibrary = selectedBooksInLibrary.Select((ComicBook cb) => cb.Container as ComicLibrary).FirstOrDefault();
+            miAddList.Visible = comicLibrary != null && !comicLibrary.ComicLists.GetItems<ComicIdListItem>().IsEmpty() && hasSelectedBooksInLibrary;
             miEditList.Visible = CanReorderList(mustBeOrdered: false);
             miExportComics.Visible = ComicEditMode.CanExport();
             miSetListBackground.Visible = BookList is ComicListItem;
-            ToolStripMenuItem toolStripMenuItem2 = miCopyData;
-            visible = (miPasteData.Visible = ComicEditMode.CanEditProperties());
-            toolStripMenuItem2.Visible = visible;
+			miCopyData.Visible = miPasteData.Visible = ComicEditMode.CanEditProperties();
             FormUtility.SafeToolStripClear(miShowOnly.DropDownItems);
             for (int j = 0; j < 3; j++)
             {
@@ -2905,7 +2906,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
                 {
                     continue;
                 }
-                foreach (ComicBook item in enumerable)
+                foreach (ComicBook item in selectedBooks)
                 {
                     string stringPropertyValue = item.GetStringPropertyValue(selectionColumn.Property);
                     if (text == null)
@@ -2929,7 +2930,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
                 }
             }
             miShowOnly.Visible = miShowOnly.DropDownItems.Count != 0;
-            miUpdateComicFiles.Visible = enumerable.Any((ComicBook cb) => cb.ComicInfoIsDirty ||cb.ComicBookIsDirty);
+            miUpdateComicFiles.Visible = selectedBooks.Any((ComicBook cb) => cb.ComicInfoIsDirty ||cb.ComicBookIsDirty);
             contextMenuItems.FixSeparators();
             miPasteData.Enabled = isPasteComicDataEnabled();
         }
