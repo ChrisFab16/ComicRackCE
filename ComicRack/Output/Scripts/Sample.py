@@ -215,9 +215,9 @@ def DummyUIQuickOpen():
 # Parameters are the book, the GDI+ graphics object, the thumbnail bounds,
 # flags is a bit-mask with:
 #
-#	1..	Hot
+#	1.. Stacked
 #	2.. Selected
-#   4.. Stacked
+#	4.. Hot
 #
 #@Name [Code Sample] Fade read comic thumbnails
 #@Hook DrawThumbnailOverlay
