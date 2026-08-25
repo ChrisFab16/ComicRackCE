@@ -7,19 +7,17 @@
 <!--
 <p>
 <a href="https://github.com/maforget/ComicRack_AmazonScrapper/releases/latest/download/ComicRackCESetup.zip" alt="Latest Release (ZIP)">
-  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?label=latest release&logo=github" /></a>
+  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?logo=GitHub&label=latest%20release%20(zip) /></a>
 <a href="https://github.com/maforget/ComicRack_AmazonScrapper/releases/latest/download/ComicRackCESetup.exe" alt="Latest Release (EXE)">
-  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?label=latest release (installer)&logo=github" /></a> 
+  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?logo=GitHub&label=latest%20release%20(installer)" /></a> 
 <br>
-  <img src="https://img.shields.io/github/release-date/maforget/ComicRackCE?logo=github&label=Released" /></a>    
-</p>
+  <img src="https://img.shields.io/github/release-date/maforget/ComicRackCE?logo=github&label=Released" /></a>     
 -->
 
-<p>
 <a href="https://github.com/maforget/ComicRackCE/releases/download/nightly/ComicRackCE_nightly.zip" alt="Nightly (ZIP)">
-  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?include_prereleases&logo=GitHub&label=pre-release%20(zip)" /></a>
+  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?include_prereleases&logo=GitHub&label=Zip" /></a>
 <a href="https://github.com/maforget/ComicRackCE/releases/download/nightly/ComicRackCESetup_nightly.exe" alt="Nightly (EXE)">
-  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?include_prereleases&logo=GitHub&label=pre-release%20(installer)" /></a>
+  <img src="https://img.shields.io/github/v/release/maforget/ComicRackCE?include_prereleases&logo=GitHub&label=Installer" /></a>
 <br>
   <img src="https://img.shields.io/github/release-date-pre/maforget/ComicRackCE?logo=github&display_date=created_at&label=Released" /></a>   
 </p>
@@ -47,12 +45,14 @@ You can also install it via winget `winget install ComicRackCE`.
 > [!CAUTION]
 > Because of a change with Microsoft Visual C++ Redistributable 2015-2022, if you use the HEIF/AVIF files you will need to have at a minimum version `14.44.35207.0` installed. This should be done automatically by the installer, but if you are using the ZIP file, please be advise that you will need to update it manually. More info [here](https://github.com/maforget/ComicRackCE/issues/106).
 >
-> Link to lastest Visual C++ Redistributable 2015-2022: https://aka.ms/vs/17/release/vc_redist.x64.exe
+> Link to latest Visual C++ Redistributable 2015-2022: https://aka.ms/vs/17/release/vc_redist.x64.exe
 
 >[!IMPORTANT]
 >* This build is currently under development and may undergo daily changes. Bugs resulting from the decompiling process may still exist, so exercise caution when upgrading.
 >* Users have reported false positives from Windows Defender and not every version can be submitted for removal.
 >    * Builds provided are automatically compiled by GitHub servers, ensuring that the downloaded file matches the code in this repository.
+>* The installer and binaries aren't signed, so it might be blocked by Smart App Control, requiring you to disable it.
+>* SmartScreen might also popup, requiring you to click More Info → Run Anyway to run the installer. This is again only because of the lack of signature.
 
 >[!WARNING]
 >* This version introduces new smart list fields not found in classic ComicRack. Do not open a database that utilizes these fields in an older version, as it will reset your database.
@@ -95,6 +95,7 @@ Check out my plugins for ComicRack Community Edition:
 - **[Bédéthèque Scraper v2](https://github.com/maforget/Bedetheque-Scrapper-2)**: Scrapes data from the French BD site Bédéthèque.
 - **[Find Image Resolution](https://github.com/maforget/ComicRack_FindImageResolution)**: Determines the resolution of a comic. Right-click => Automation => Find Image Resolution (.NET). Configuration is in File => Automation => Find Image Resolution (.NET) Config.
 - **[fullscreen.py](https://gist.githubusercontent.com/maforget/186a99205140acd3f7d3328ad1466e62/raw/8c7c0ecab28fb9a6037adbe19ff553e3597cccd6/fullscreen.py)**: Automatically fullscreens the application when opening a book or starting the app (depending on your settings). Copy the file to `%programfiles%\ComicRack Community Edition\Scripts` or `%appdata%\cYo\ComicRack Community Edition\Scripts`.
+- **[DrawCheckedThumbnails.py](https://gist.githubusercontent.com/maforget/5167a4fa73a07cdace8334bb97c28e6b/raw/03bd69b2981ad95d7fedf8833a98aec055b8d969/DrawCheckedThumbnails.py)**: Draws a red checkmark in the upper-left corner of the thumbnail for comics that are marked as checked. Copy the file to `%programfiles%\ComicRack Community Edition\Scripts` or `%appdata%\cYo\ComicRack Community Edition\Scripts`.
 - **[comicrack-copy-move-field](https://github.com/maforget/comicrack-copy-move-field)**: Moves or copies info from one field to another, either replacing or appending to the destination field. Updates include support for copying or moving dates.
 
 **You should also consider installing the [ComicVine Scraper](https://github.com/cbanack/comic-vine-scraper/releases/latest), [Library Organizer](https://github.com/Stonepaw/comicrack-library-organizer/releases/latest) and [FromDucks](https://github.com/ducksmanager/ComicRack_FromDucks) plugins.**
