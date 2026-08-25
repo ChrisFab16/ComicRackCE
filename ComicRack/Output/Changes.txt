@@ -10,6 +10,7 @@ Community Edition Build 0.9.184:
     - Added the "ComicBookIsDirty" flag to tracks changes to ComicBook exclusive fields (See list in PR #261).
     - Added a "Modified Library Info" smart list that can filter on this flag (not part of the default "Files to Update" list).
 * NEW: Using Export Reading List on a Folder will now let you choose to export the CBL as smart lists (default) or single entries (converts smart lists to regular reading lists).
+* NEW: Add continuous comic reading mode. This adds a fourth page layout, Continuous, for webtoons, manhwa, and other comics made from vertically ordered images. (by illusive5943)
 * NEW: Failure to update book info will now show an error message instead of silently failing.
 * NEW: Updating book info can now update multiple books at the same time.
 * NEW: Added "MaximumUpdateThreads" setting in ComicRack.ini to configure the number of books that will update concurrently. Default is 2. (based on processor count and 32 as max)
