@@ -78,7 +78,7 @@ namespace cYo.Projects.ComicRack.Engine.Display
 
 		private float mouseWheelSpeed = 2f;
 
-		public bool TwoPageDisplay => PageLayout != PageLayoutMode.Single;
+		public bool TwoPageDisplay => PageLayout == PageLayoutMode.Double || PageLayout == PageLayoutMode.DoubleAdaptive;
 
 		public bool SupressContextMenu
 		{
@@ -744,48 +744,54 @@ namespace cYo.Projects.ComicRack.Engine.Display
 				{
 					return;
 				}
+				if (value == PageLayoutMode.Continuous || display.PageLayout == PageLayoutMode.Continuous)
+				{
+					display.PageLayout = value;
+					display.DoublePageOverlap = 0f;
+					return;
+				}
 				bool imageAutoRotate = display.ImageAutoRotate;
 				ImageRotation imageRotation = display.ImageRotation;
 				display.ImageAutoRotate = false;
 				display.ImageRotation = display.CurrentImageRotation;
 				switch (value)
 				{
-				default:
+					default:
 					Animate(delegate(float p)
-					{
-						display.DoublePageOverlap = p;
-					});
-					break;
-				case PageLayoutMode.Double:
-					if (!TwoPageDisplay || (TwoPageDisplay && !IsDoubleImage))
-					{
-						display.PageLayout = value;
-						Animate(delegate(float p)
 						{
-							display.DoublePageOverlap = 1f - p;
+							display.DoublePageOverlap = p;
 						});
-					}
-					break;
-				case PageLayoutMode.DoubleAdaptive:
-					if (TwoPageDisplay)
-					{
-						if (!IsDoubleImage)
+						break;
+					case PageLayoutMode.Double:
+						if (!TwoPageDisplay || (TwoPageDisplay && !IsDoubleImage))
 						{
-							Animate(delegate(float p)
+							display.PageLayout = value;
+						Animate(delegate(float p)
 							{
-								display.DoublePageOverlap = p;
+								display.DoublePageOverlap = 1f - p;
 							});
 						}
-					}
-					else
-					{
-						display.PageLayout = value;
-						Animate(delegate(float p)
+						break;
+					case PageLayoutMode.DoubleAdaptive:
+						if (TwoPageDisplay)
 						{
-							display.DoublePageOverlap = 1f - p;
-						});
-					}
-					break;
+							if (!IsDoubleImage)
+							{
+							Animate(delegate(float p)
+								{
+									display.DoublePageOverlap = p;
+								});
+							}
+						}
+						else
+						{
+							display.PageLayout = value;
+						Animate(delegate(float p)
+							{
+								display.DoublePageOverlap = 1f - p;
+							});
+						}
+						break;
 				}
 				display.PageLayout = value;
 				display.DoublePageOverlap = 0f;
@@ -1202,6 +1208,14 @@ namespace cYo.Projects.ComicRack.Engine.Display
 
 		public void DisplayNextPageOrPart(bool forceNewPage = false)
 		{
+			if (PageLayout == PageLayoutMode.Continuous)
+			{
+				if (!EatScrolling() && !DisplayPart(PartPageToDisplay.Next))
+				{
+					OnLastPageReached();
+				}
+				return;
+			}
 			if (!EatScrolling() && (forceNewPage || !DisplayPart(PartPageToDisplay.Next)))
 			{
 				DisplayNextPage(PagingMode.Double | PagingMode.Walled);
@@ -1210,6 +1224,14 @@ namespace cYo.Projects.ComicRack.Engine.Display
 
 		public void DisplayPreviousPageOrPart(bool forceNewPage = false)
 		{
+			if (PageLayout == PageLayoutMode.Continuous)
+			{
+				if (!EatScrolling() && !DisplayPart(PartPageToDisplay.Previous))
+				{
+					OnFirstPageReached();
+				}
+				return;
+			}
 			if (!EatScrolling() && (forceNewPage || !DisplayPart(PartPageToDisplay.Previous)))
 			{
 				DisplayPreviousPage(PagingMode.Double | PagingMode.Walled);
@@ -1362,7 +1384,11 @@ namespace cYo.Projects.ComicRack.Engine.Display
 		{
 			if (!EatScrolling())
 			{
-				if (AutoScrolling)
+				if (PageLayout == PageLayoutMode.Continuous)
+				{
+					ScrollUp(lines, withPageChange: false);
+				}
+				else if (AutoScrolling)
 				{
 					DisplayPreviousPageOrPart();
 				}
@@ -1382,7 +1408,11 @@ namespace cYo.Projects.ComicRack.Engine.Display
 		{
 			if (!EatScrolling())
 			{
-				if (AutoScrolling)
+				if (PageLayout == PageLayoutMode.Continuous)
+				{
+					ScrollDown(lines, withPageChange: false);
+				}
+				else if (AutoScrolling)
 				{
 					DisplayNextPageOrPart();
 				}
@@ -1428,15 +1458,18 @@ namespace cYo.Projects.ComicRack.Engine.Display
 		{
 			switch (PageLayout)
 			{
-			case PageLayoutMode.Single:
-				PageLayout = PageLayoutMode.Double;
-				break;
-			case PageLayoutMode.Double:
-				PageLayout = PageLayoutMode.DoubleAdaptive;
-				break;
-			case PageLayoutMode.DoubleAdaptive:
-				PageLayout = PageLayoutMode.Single;
-				break;
+				case PageLayoutMode.Single:
+					PageLayout = PageLayoutMode.Double;
+					break;
+				case PageLayoutMode.Double:
+					PageLayout = PageLayoutMode.DoubleAdaptive;
+					break;
+				case PageLayoutMode.DoubleAdaptive:
+					PageLayout = PageLayoutMode.Single;
+					break;
+				case PageLayoutMode.Continuous:
+					PageLayout = PageLayoutMode.Single;
+					break;
 			}
 		}
 
@@ -1462,7 +1495,8 @@ namespace cYo.Projects.ComicRack.Engine.Display
 
 		public void SetPageFitAll()
 		{
-			ImageFitMode = ImageFitMode.Fit;
+			if (PageLayout != PageLayoutMode.Continuous)
+				ImageFitMode = ImageFitMode.Fit;
 		}
 
 		public void SetPageFitWidth()
@@ -1477,7 +1511,8 @@ namespace cYo.Projects.ComicRack.Engine.Display
 
 		public void SetPageFitHeight()
 		{
-			ImageFitMode = ImageFitMode.FitHeight;
+			if (PageLayout != PageLayoutMode.Continuous)
+				ImageFitMode = ImageFitMode.FitHeight;
 		}
 
 		public void SetPageBestFit()
@@ -1488,6 +1523,11 @@ namespace cYo.Projects.ComicRack.Engine.Display
 		public bool IsPageFitHeight()
 		{
 			return ImageFitMode == ImageFitMode.FitHeight;
+		}
+
+		public bool IsPageFitAll()
+		{
+			return ImageFitMode == ImageFitMode.Fit;
 		}
 
 		public bool IsPageFitWidth()
@@ -1600,6 +1640,11 @@ namespace cYo.Projects.ComicRack.Engine.Display
 		{
 			bool isDoubleImage = IsDoubleImage;
 			Size imageSize = ImageSize;
+			if (PageLayout == PageLayoutMode.Continuous)
+			{
+				int line = Math.Max(1, imageSize.Width / 16);
+				return new Size(line, line);
+			}
 			return new Size(imageSize.Width / (isDoubleImage ? 32 : 16), imageSize.Height / 32);
 		}
 
@@ -1623,6 +1668,10 @@ namespace cYo.Projects.ComicRack.Engine.Display
 		private void display_PageChange(object sender, BookPageEventArgs e)
 		{
 			oldZoom = 0f;
+			if (PageLayout == PageLayoutMode.Continuous)
+			{
+				return;
+			}
 			if (ImageZoom != 1f)
 			{
 				if (resetZoomOnPageChange)
@@ -1657,62 +1706,62 @@ namespace cYo.Projects.ComicRack.Engine.Display
 		{
 			switch (e.Area)
 			{
-			case ContentAlignment.TopLeft:
-				if (!e.Double)
-				{
-					return CommandKey.Gesture1;
-				}
-				return CommandKey.GestureDouble1;
-			case ContentAlignment.TopCenter:
-				if (!e.Double)
-				{
-					return CommandKey.Gesture2;
-				}
-				return CommandKey.GestureDouble2;
-			case ContentAlignment.TopRight:
-				if (!e.Double)
-				{
-					return CommandKey.Gesture3;
-				}
-				return CommandKey.GestureDouble3;
-			case ContentAlignment.MiddleLeft:
-				if (!e.Double)
-				{
-					return CommandKey.Gesture4;
-				}
-				return CommandKey.GestureDouble4;
-			case ContentAlignment.MiddleCenter:
-				if (!e.Double)
-				{
-					return CommandKey.Gesture5;
-				}
-				return CommandKey.GestureDouble5;
-			case ContentAlignment.MiddleRight:
-				if (!e.Double)
-				{
-					return CommandKey.Gesture6;
-				}
-				return CommandKey.GestureDouble6;
-			case ContentAlignment.BottomLeft:
-				if (!e.Double)
-				{
-					return CommandKey.Gesture7;
-				}
-				return CommandKey.GestureDouble7;
-			case ContentAlignment.BottomCenter:
-				if (!e.Double)
-				{
-					return CommandKey.Gesture8;
-				}
-				return CommandKey.GestureDouble8;
-			case ContentAlignment.BottomRight:
-				if (!e.Double)
-				{
-					return CommandKey.Gesture9;
-				}
-				return CommandKey.GestureDouble9;
-			default:
-				return CommandKey.None;
+				case ContentAlignment.TopLeft:
+					if (!e.Double)
+					{
+						return CommandKey.Gesture1;
+					}
+					return CommandKey.GestureDouble1;
+				case ContentAlignment.TopCenter:
+					if (!e.Double)
+					{
+						return CommandKey.Gesture2;
+					}
+					return CommandKey.GestureDouble2;
+				case ContentAlignment.TopRight:
+					if (!e.Double)
+					{
+						return CommandKey.Gesture3;
+					}
+					return CommandKey.GestureDouble3;
+				case ContentAlignment.MiddleLeft:
+					if (!e.Double)
+					{
+						return CommandKey.Gesture4;
+					}
+					return CommandKey.GestureDouble4;
+				case ContentAlignment.MiddleCenter:
+					if (!e.Double)
+					{
+						return CommandKey.Gesture5;
+					}
+					return CommandKey.GestureDouble5;
+				case ContentAlignment.MiddleRight:
+					if (!e.Double)
+					{
+						return CommandKey.Gesture6;
+					}
+					return CommandKey.GestureDouble6;
+				case ContentAlignment.BottomLeft:
+					if (!e.Double)
+					{
+						return CommandKey.Gesture7;
+					}
+					return CommandKey.GestureDouble7;
+				case ContentAlignment.BottomCenter:
+					if (!e.Double)
+					{
+						return CommandKey.Gesture8;
+					}
+					return CommandKey.GestureDouble8;
+				case ContentAlignment.BottomRight:
+					if (!e.Double)
+					{
+						return CommandKey.Gesture9;
+					}
+					return CommandKey.GestureDouble9;
+				default:
+					return CommandKey.None;
 			}
 		}
 
@@ -1728,27 +1777,27 @@ namespace cYo.Projects.ComicRack.Engine.Display
 		{
 			switch (e.Gesture)
 			{
-			case GestureType.Click:
-				if (MouseClickEnabled)
-				{
-					e.Handled = keyboardMap.HandleKey(e.MouseButton, e.Double, e.IsTouch);
-				}
-				break;
-			case GestureType.PressAndTap:
-				e.Handled = keyboardMap.HandleKey(CommandKey.TouchPressAndTap);
-				break;
-			case GestureType.TwoFingerTap:
-				e.Handled = keyboardMap.HandleKey(CommandKey.TouchTwoFingerTap);
-				break;
-			case GestureType.Touch:
-				e.Handled = keyboardMap.HandleKey(TranslateTouchGesture(e));
-				break;
-			case GestureType.FlickLeft:
-				e.Handled = keyboardMap.HandleKey(CommandKey.FlickLeft);
-				break;
-			case GestureType.FlickRight:
-				e.Handled = keyboardMap.HandleKey(CommandKey.FlickRight);
-				break;
+				case GestureType.Click:
+					if (MouseClickEnabled)
+					{
+						e.Handled = keyboardMap.HandleKey(e.MouseButton, e.Double, e.IsTouch);
+					}
+					break;
+				case GestureType.PressAndTap:
+					e.Handled = keyboardMap.HandleKey(CommandKey.TouchPressAndTap);
+					break;
+				case GestureType.TwoFingerTap:
+					e.Handled = keyboardMap.HandleKey(CommandKey.TouchTwoFingerTap);
+					break;
+				case GestureType.Touch:
+					e.Handled = keyboardMap.HandleKey(TranslateTouchGesture(e));
+					break;
+				case GestureType.FlickLeft:
+					e.Handled = keyboardMap.HandleKey(CommandKey.FlickLeft);
+					break;
+				case GestureType.FlickRight:
+					e.Handled = keyboardMap.HandleKey(CommandKey.FlickRight);
+					break;
 			}
 		}
 
@@ -1809,25 +1858,25 @@ namespace cYo.Projects.ComicRack.Engine.Display
 			}
 			switch (pageSeekOrigin)
 			{
-			case PageSeekOrigin.Beginning:
-				DisplayFirstPage();
-				break;
-			case PageSeekOrigin.End:
-				DisplayLastPage();
-				break;
-			case PageSeekOrigin.Current:
-				if (num < 0)
-				{
-					DisplayPreviousPage(PagingMode.Double);
-				}
-				else
-				{
-					DisplayNextPage(PagingMode.Double);
-				}
-				break;
-			case PageSeekOrigin.Absolute:
-				Book.Navigate(num, pageSeekOrigin);
-				break;
+				case PageSeekOrigin.Beginning:
+					DisplayFirstPage();
+					break;
+				case PageSeekOrigin.End:
+					DisplayLastPage();
+					break;
+				case PageSeekOrigin.Current:
+					if (num < 0)
+					{
+						DisplayPreviousPage(PagingMode.Double);
+					}
+					else
+					{
+						DisplayNextPage(PagingMode.Double);
+					}
+					break;
+				case PageSeekOrigin.Absolute:
+					Book.Navigate(num, pageSeekOrigin);
+					break;
 			}
 		}
 
