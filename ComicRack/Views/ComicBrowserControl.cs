@@ -201,6 +201,18 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 
         private readonly CommandMapper commands = new CommandMapper();
 
+        private const int DesignThumbSize = 128;
+
+        private const int DesignTileHeight = 96;
+
+        private const int DesignGroupHeaderHeight = 40;
+
+        private const int DesignDetailRowPadding = 6;
+
+        private const int DesignToolbarHeight = 25;
+
+        private static readonly int DesignDetailRowHeightBaseline = SystemFonts.IconTitleFont.Height + 6;
+
         private readonly Image groupUp = Resources.GroupUp;
 
         private readonly Image groupDown = Resources.GroupDown;
@@ -208,6 +220,18 @@ namespace cYo.Projects.ComicRack.Viewer.Views
         private readonly Image sortUp = Resources.SortUp;
 
         private readonly Image sortDown = Resources.SortDown;
+
+        private readonly Dictionary<ToolStripItem, Image> toolbarOriginalImages = new Dictionary<ToolStripItem, Image>();
+
+        private bool initialColumnWidthsApplied;
+
+        private Image scaledSortUp;
+
+        private Image scaledSortDown;
+
+        private Image scaledGroupUp;
+
+        private Image scaledGroupDown;
 
         private ToolStripMenuItem miCopyListSetup;
 
@@ -349,7 +373,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
             }
             set
             {
-                itemView.ViewConfig = value;
+                itemView.ViewConfig = NormalizeViewConfigSizes(value);
             }
         }
 
@@ -850,21 +874,18 @@ namespace cYo.Projects.ComicRack.Viewer.Views
             foreach (ItemViewColumn column in itemView.Columns)
             {
                 column.TooltipText = ((ComicListField)column.Tag).Description;
-                column.Width = FormUtility.ScaleDpiX(column.Width);
             }
             ThumbnailConfig = new ThumbnailConfig();
             ThumbnailConfig.CaptionIds.Add(30);
-            tsQuickSearch.TextBox.SearchButtonImage = Resources.Search.ScaleDpi();
-            tsQuickSearch.TextBox.ClearButtonImage = Resources.SmallCloseGray.ScaleDpi();
-            itemView.Font = SystemFonts.IconTitleFont;
             itemView.ItemContextMenuStrip = contextMenuItems;
-            itemView.ItemRowHeight = itemView.Font.Height + FormUtility.ScaleDpiY(6);
-            itemView.ColumnHeaderHeight = itemView.ItemRowHeight;
             itemView.Items.Changed += ComicItemAdded;
             itemView.MouseWheel += itemView_MouseWheel;
             itemView.StackColumnSorter = GetStackColumnSorter;
             miPasteData.Click += new EventHandler((sender, e) => PasteComicData());
             KeySearch.Create(itemView);
+            CaptureToolbarOriginalImages();
+            FormUtility.DpiScaleChanged += OnDpiScaleChanged;
+            ApplyComicBrowserMetrics();
         }
 
         private static readonly IComparer<IViewableItem> defaultSeriesComparer = new CoverViewItemBookComparer<ComicBookSeriesComparer>();
@@ -905,6 +926,182 @@ namespace cYo.Projects.ComicRack.Viewer.Views
             }
         }
 
+        public void ApplyComicBrowserMetrics()
+        {
+            if (base.DesignMode || itemView == null)
+            {
+                return;
+            }
+            if (!initialColumnWidthsApplied)
+            {
+                foreach (ItemViewColumn column in itemView.Columns)
+                {
+                    column.Width = FormUtility.ScaleDpiX(column.Width);
+                }
+                initialColumnWidthsApplied = true;
+            }
+            itemView.Font = SystemFonts.IconTitleFont;
+            int rowHeight = itemView.Font.Height + FormUtility.ScaleDpiY(DesignDetailRowPadding);
+            itemView.ItemRowHeight = rowHeight;
+            itemView.ColumnHeaderHeight = rowHeight;
+            if (itemView.ItemThumbSize.Height <= DesignThumbSize)
+            {
+                itemView.ItemThumbSize = new Size(DesignThumbSize, DesignThumbSize).ScaleDpi();
+            }
+            if (itemView.ItemTileSize.Height <= DesignTileHeight)
+            {
+                int tileHeight = FormUtility.ScaleDpiY(DesignTileHeight);
+                itemView.ItemTileSize = new Size(tileHeight * 2, tileHeight);
+            }
+            if (itemView.GroupHeaderHeight <= DesignGroupHeaderHeight)
+            {
+                itemView.GroupHeaderHeight = FormUtility.ScaleDpiY(DesignGroupHeaderHeight);
+            }
+            itemView.GroupCollapsedImage = ((Bitmap)Resources.ArrowRight).ScaleDpi();
+            itemView.GroupExpandedImage = ((Bitmap)Resources.ArrowDown).ScaleDpi();
+            tsQuickSearch.TextBox.SearchButtonImage = ((Bitmap)Resources.Search).ScaleDpi();
+            tsQuickSearch.TextBox.ClearButtonImage = ((Bitmap)Resources.SmallCloseGray).ScaleDpi();
+            scaledSortUp = ((Bitmap)sortUp).ScaleDpi();
+            scaledSortDown = ((Bitmap)sortDown).ScaleDpi();
+            scaledGroupUp = ((Bitmap)groupUp).ScaleDpi();
+            scaledGroupDown = ((Bitmap)groupDown).ScaleDpi();
+            ApplyToolbarMetrics();
+            ApplyContextMenuMetrics(contextMenuItems);
+            ApplyContextMenuMetrics(contextRating);
+            ApplyContextMenuMetrics(contextMarkAs);
+            ApplyContextMenuMetrics(contextQuickSearch);
+            itemView.Invalidate();
+        }
+
+        private void OnDpiScaleChanged(object sender, EventArgs e)
+        {
+            if (!base.IsHandleCreated || base.DesignMode)
+            {
+                return;
+            }
+            if (InvokeRequired)
+            {
+                BeginInvoke(new MethodInvoker(ApplyComicBrowserMetrics));
+                return;
+            }
+            ApplyComicBrowserMetrics();
+        }
+
+        private void CaptureToolbarOriginalImages()
+        {
+            toolbarOriginalImages.Clear();
+            if (toolStrip == null)
+            {
+                return;
+            }
+            foreach (ToolStripItem item in toolStrip.Items)
+            {
+                if (item.Image != null)
+                {
+                    toolbarOriginalImages[item] = item.Image;
+                }
+            }
+        }
+
+        private void ApplyToolbarMetrics()
+        {
+            if (toolStrip == null)
+            {
+                return;
+            }
+            toolStrip.Height = FormUtility.ScaleDpiY(DesignToolbarHeight);
+            Size buttonSize = new Size(23, 22).ScaleDpi();
+            foreach (ToolStripItem item in toolStrip.Items)
+            {
+                if (item is ToolStripButton button)
+                {
+                    button.Size = buttonSize;
+                    ApplyToolbarItemImage(item);
+                }
+                else if (item is ToolStripSplitButton splitButton)
+                {
+                    splitButton.Size = new Size(FormUtility.ScaleDpiX(splitButton.Width), buttonSize.Height);
+                    ApplyToolbarItemImage(item);
+                }
+            }
+            UpdateSortGroupToolbarImages();
+        }
+
+        private void ApplyToolbarItemImage(ToolStripItem item)
+        {
+            if (toolbarOriginalImages.TryGetValue(item, out Image original) && original is Bitmap bitmap)
+            {
+                item.Image = bitmap.ScaleDpi();
+            }
+        }
+
+        private void UpdateSortGroupToolbarImages()
+        {
+            if (scaledSortUp == null || scaledSortDown == null || scaledGroupUp == null || scaledGroupDown == null)
+            {
+                return;
+            }
+            tbbSort.Image = ((itemView.ItemSortOrder == SortOrder.Ascending) ? scaledSortUp : scaledSortDown);
+            tbbGroup.Image = ((itemView.GroupSortingOrder == SortOrder.Ascending) ? scaledGroupDown : scaledGroupUp);
+        }
+
+        private static void ApplyContextMenuMetrics(ContextMenuStrip menu)
+        {
+            if (menu == null)
+            {
+                return;
+            }
+            menu.ImageScalingSize = new Size(16, 16).ScaleDpi();
+            menu.Font = SystemFonts.MessageBoxFont;
+        }
+
+        private static ItemViewConfig NormalizeViewConfigSizes(ItemViewConfig config)
+        {
+            if (config == null || FormUtility.DpiScale.Y <= 1.01f)
+            {
+                return config;
+            }
+            Size thumbSize = config.ThumbnailSize;
+            Size tileSize = config.TileSize;
+            int rowHeight = config.ItemRowHeight;
+            bool changed = false;
+            if (thumbSize.Height > 0 && thumbSize.Height <= DesignThumbSize)
+            {
+                thumbSize = new Size(DesignThumbSize, DesignThumbSize).ScaleDpi();
+                changed = true;
+            }
+            if (tileSize.Height > 0 && tileSize.Height <= DesignTileHeight)
+            {
+                int tileHeight = FormUtility.ScaleDpiY(DesignTileHeight);
+                tileSize = new Size(tileHeight * 2, tileHeight);
+                changed = true;
+            }
+            if (rowHeight > 0 && rowHeight <= DesignDetailRowHeightBaseline)
+            {
+                rowHeight = SystemFonts.IconTitleFont.Height + FormUtility.ScaleDpiY(DesignDetailRowPadding);
+                changed = true;
+            }
+            if (!changed)
+            {
+                return config;
+            }
+            return new ItemViewConfig
+            {
+                Columns = config.Columns,
+                Grouping = config.Grouping,
+                ItemSortOrder = config.ItemSortOrder,
+                GroupSortOrder = config.GroupSortOrder,
+                GroupsStatus = config.GroupsStatus,
+                SortKey = config.SortKey,
+                GrouperId = config.GrouperId,
+                StackerId = config.StackerId,
+                ItemViewMode = config.ItemViewMode,
+                ThumbnailSize = thumbSize,
+                TileSize = tileSize,
+                ItemRowHeight = rowHeight
+            };
+        }
+
         protected override void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
@@ -912,6 +1109,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
             {
                 return;
             }
+            ApplyComicBrowserMetrics();
             commands.Add(delegate
             {
                 QuickSearchType = ComicBookAllPropertiesMatcher.MatcherOption.All;
@@ -1129,6 +1327,24 @@ namespace cYo.Projects.ComicRack.Viewer.Views
             }
             base.Controls.SetChildIndex(toolStrip, base.Controls.Count - 1);
             ItemView.MouseDown += ItemView_MouseDown;
+            RegisterLateToolbarItems();
+            ApplyContextMenuMetrics(itemView.AutoViewContextMenuStrip);
+            ApplyComicBrowserMetrics();
+        }
+
+        private void RegisterLateToolbarItems()
+        {
+            if (toolStrip == null)
+            {
+                return;
+            }
+            foreach (ToolStripItem item in toolStrip.Items)
+            {
+                if (item.Image != null && !toolbarOriginalImages.ContainsKey(item))
+                {
+                    toolbarOriginalImages[item] = item.Image;
+                }
+            }
         }
 
         private void ItemView_MouseDown(object sender, MouseEventArgs e)
@@ -1390,8 +1606,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
             {
                 oldStacker = itemView.ItemStacker;
             }
-            tbbSort.Image = ((itemView.ItemSortOrder == SortOrder.Ascending) ? sortUp : sortDown);
-            tbbGroup.Image = ((itemView.GroupSortingOrder == SortOrder.Ascending) ? groupDown : groupUp);
+            UpdateSortGroupToolbarImages();
             if (tbUndo.Visible)
             {
                 if (tbUndo.Tag == null)

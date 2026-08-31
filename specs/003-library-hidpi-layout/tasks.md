@@ -16,9 +16,9 @@
 
 **Purpose**: Confirm artifacts and implementation entry points before code changes.
 
-- [ ] T001 Review acceptance criteria in `specs/003-library-hidpi-layout/contracts/comic-list-layout.md` and `specs/003-library-hidpi-layout/contracts/browser-chrome.md`
-- [ ] T002 Review pixel audit punch list in `specs/003-library-hidpi-layout/research.md` sections 1–4 and plan.md touch list
-- [ ] T003 Confirm local branch is `003-library-hidpi-layout`, features **001** and **002** are present, and solution builds via `msbuild ComicRack\ComicRack.csproj /t:Rebuild /p:Configuration=Debug /p:LangVersion=13.0`
+- [x] T001 Review acceptance criteria in `specs/003-library-hidpi-layout/contracts/comic-list-layout.md` and `specs/003-library-hidpi-layout/contracts/browser-chrome.md`
+- [x] T002 Review pixel audit punch list in `specs/003-library-hidpi-layout/research.md` sections 1–4 and plan.md touch list
+- [x] T003 Confirm local branch is `003-library-hidpi-layout`, features **001** and **002** are present, and solution builds via `msbuild ComicRack\ComicRack.csproj /t:Rebuild /p:Configuration=Debug /p:LangVersion=13.0`
 
 ---
 
@@ -28,10 +28,10 @@
 
 **⚠️ CRITICAL**: No user story implementation until this phase is complete.
 
-- [ ] T004 Add `ApplyComicBrowserMetrics()` public method skeleton in `ComicRack/Views/ComicBrowserControl.cs` as single entry point for init + DPI refresh (mirror `ComicExplorerView.ApplyExplorerShellMetrics()` pattern)
-- [ ] T005 Subscribe `FormUtility.DpiScaleChanged` in `ComicRack/Views/ComicBrowserControl.cs` with `BeginInvoke` guard matching `ComicRack/Views/ComicListFolderFilesBrowser.cs` `OnDpiScaleChanged`
-- [ ] T006 Refactor existing ctor scaling (column widths, row height, search images) to call `ApplyComicBrowserMetrics()` from constructor and `OnLoad` in `ComicRack/Views/ComicBrowserControl.cs` — single call site per D3
-- [ ] T007 Verify `FormUtility.DpiScaleChanged` and `RefreshDpiScale` from features 001/002 are used as-is — no duplicate DPI infrastructure
+- [x] T004 Add `ApplyComicBrowserMetrics()` public method skeleton in `ComicRack/Views/ComicBrowserControl.cs` as single entry point for init + DPI refresh (mirror `ComicExplorerView.ApplyExplorerShellMetrics()` pattern)
+- [x] T005 Subscribe `FormUtility.DpiScaleChanged` in `ComicRack/Views/ComicBrowserControl.cs` with `BeginInvoke` guard matching `ComicRack/Views/ComicListFolderFilesBrowser.cs` `OnDpiScaleChanged`
+- [x] T006 Refactor existing ctor scaling (column widths, row height, search images) to call `ApplyComicBrowserMetrics()` from constructor and `OnLoad` in `ComicRack/Views/ComicBrowserControl.cs` — single call site per D3
+- [x] T007 Verify `FormUtility.DpiScaleChanged` and `RefreshDpiScale` from features 001/002 are used as-is — no duplicate DPI infrastructure
 
 **Checkpoint**: `ComicBrowserControl` has callable metrics helper and DPI subscription — user story work can begin.
 
@@ -45,12 +45,12 @@
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Scale `itemView.ItemThumbSize` to `FormUtility.ScaleDpi(128×128)` when current height ≤ 128 in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs` per C-CLL-002
-- [ ] T009 [US1] Scale `itemView.ItemTileSize` to `(ScaleDpiY(96)*2, ScaleDpiY(96))` when tile height ≤ 96 in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs` per C-CLL-003
-- [ ] T010 [US1] Apply scaled thumb/tile defaults on fresh init before or independent of persisted `ViewConfig` in `ComicRack/Views/ComicBrowserControl.cs`
-- [ ] T011 [US1] Include thumb/tile sizes in `ApplyComicBrowserMetrics()` DPI refresh path in `ComicRack/Views/ComicBrowserControl.cs`
-- [ ] T012 [US1] Add `NormalizeViewConfigSizes(ItemViewConfig)` (or equivalent) and invoke from `ViewConfig` setter when thumb height ≤ 128 or tile height ≤ 96 per C-CLL-005 / FR-004 in `ComicRack/Views/ComicBrowserControl.cs`
-- [ ] T013 [US1] Verify thumb view on Library (`dbView`) and Folders (`fileView`) at 150% without tiny 96-DPI grid (SC-001)
+- [x] T008 [US1] Scale `itemView.ItemThumbSize` to `FormUtility.ScaleDpi(128×128)` when current height ≤ 128 in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs` per C-CLL-002
+- [x] T009 [US1] Scale `itemView.ItemTileSize` to `(ScaleDpiY(96)*2, ScaleDpiY(96))` when tile height ≤ 96 in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs` per C-CLL-003
+- [x] T010 [US1] Apply scaled thumb/tile defaults on fresh init before or independent of persisted `ViewConfig` in `ComicRack/Views/ComicBrowserControl.cs`
+- [x] T011 [US1] Include thumb/tile sizes in `ApplyComicBrowserMetrics()` DPI refresh path in `ComicRack/Views/ComicBrowserControl.cs`
+- [x] T012 [US1] Add `NormalizeViewConfigSizes(ItemViewConfig)` (or equivalent) and invoke from `ViewConfig` setter when thumb height ≤ 128 or tile height ≤ 96 per C-CLL-005 / FR-004 in `ComicRack/Views/ComicBrowserControl.cs`
+- [x] T013 [US1] Verify thumb view on Library (`dbView`) and Folders (`fileView`) at 150% without tiny 96-DPI grid (SC-001)
 
 **Checkpoint**: MVP complete — thumb/tile legible at HiDPI on both tabs; validate Scenarios 1–2 before US2.
 
@@ -64,12 +64,12 @@
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Set `itemView.ItemRowHeight` and `itemView.ColumnHeaderHeight` to `itemView.Font.Height + FormUtility.ScaleDpiY(6)` in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs` per C-CLL-004
-- [ ] T015 [US2] Set `itemView.GroupHeaderHeight` to `FormUtility.ScaleDpiY(40)` when current value ≤ 40 in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs`
-- [ ] T016 [US2] Extend `NormalizeViewConfigSizes` to scale detail row height when ≤ unscaled baseline (ctor default before first metrics apply) in `ComicRack/Views/ComicBrowserControl.cs`
-- [ ] T017 [US2] Evaluate `itemView.Font` — use `SystemFonts.MessageBoxFont` on metrics refresh if IconTitleFont too small at 150% per research D6; document choice in validation if unchanged
-- [ ] T018 [US2] Include row/header/group metrics in DPI refresh path in `ComicRack/Views/ComicBrowserControl.cs`
-- [ ] T019 [US2] Verify list/detail view row text and column headers at 150% without vertical clipping (SC-002)
+- [x] T014 [US2] Set `itemView.ItemRowHeight` and `itemView.ColumnHeaderHeight` to `itemView.Font.Height + FormUtility.ScaleDpiY(6)` in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs` per C-CLL-004
+- [x] T015 [US2] Set `itemView.GroupHeaderHeight` to `FormUtility.ScaleDpiY(40)` when current value ≤ 40 in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs`
+- [x] T016 [US2] Extend `NormalizeViewConfigSizes` to scale detail row height when ≤ unscaled baseline (ctor default before first metrics apply) in `ComicRack/Views/ComicBrowserControl.cs`
+- [x] T017 [US2] Evaluate `itemView.Font` — use `SystemFonts.MessageBoxFont` on metrics refresh if IconTitleFont too small at 150% per research D6; document choice in validation if unchanged
+- [x] T018 [US2] Include row/header/group metrics in DPI refresh path in `ComicRack/Views/ComicBrowserControl.cs`
+- [x] T019 [US2] Verify list/detail view row text and column headers at 150% without vertical clipping (SC-002)
 
 **Checkpoint**: List/detail proportionate at HiDPI; Scenario 3 passes.
 
@@ -83,12 +83,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T020 [P] [US3] Store original bitmap references for toolbar buttons (sortUp, sortDown, group, stack, view, browse, undo/redo, sidebar) in `ComicRack/Views/ComicBrowserControl.cs`
-- [ ] T021 [US3] Add `ApplyToolbarMetrics()` inside `ApplyComicBrowserMetrics()` scaling toolbar images via `.ScaleDpi()` and button sizes to `ScaleDpi(23×22)`, strip height `ScaleDpiY(25)` per C-CBC-001/002 (pattern from `ComicListFolderFilesBrowser.cs`)
-- [ ] T022 [US3] Update runtime sort icon assignment (`tbbSort.Image = sortUp/sortDown`) to use scaled images from stored originals in `ComicRack/Views/ComicBrowserControl.cs`
-- [ ] T023 [P] [US3] Set scaled `ImageScalingSize` and font on `contextMenuItems` (and `contextRating` / `contextMarkAs` if icons clip) in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs` per C-CBC-003
-- [ ] T024 [US3] Re-scale `tsQuickSearch` search/clear button images on DPI refresh in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs`
-- [ ] T025 [US3] Verify toolbar buttons clickable and context menu readable at 150% (SC-003, FR-007)
+- [x] T020 [P] [US3] Store original bitmap references for toolbar buttons (sortUp, sortDown, group, stack, view, browse, undo/redo, sidebar) in `ComicRack/Views/ComicBrowserControl.cs`
+- [x] T021 [US3] Add `ApplyToolbarMetrics()` inside `ApplyComicBrowserMetrics()` scaling toolbar images via `.ScaleDpi()` and button sizes to `ScaleDpi(23×22)`, strip height `ScaleDpiY(25)` per C-CBC-001/002 (pattern from `ComicListFolderFilesBrowser.cs`)
+- [x] T022 [US3] Update runtime sort icon assignment (`tbbSort.Image = sortUp/sortDown`) to use scaled images from stored originals in `ComicRack/Views/ComicBrowserControl.cs`
+- [x] T023 [P] [US3] Set scaled `ImageScalingSize` and font on `contextMenuItems` (and `contextRating` / `contextMarkAs` if icons clip) in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs` per C-CBC-003
+- [x] T024 [US3] Re-scale `tsQuickSearch` search/clear button images on DPI refresh in `ApplyComicBrowserMetrics()` in `ComicRack/Views/ComicBrowserControl.cs`
+- [x] T025 [US3] Verify toolbar buttons clickable and context menu readable at 150% (SC-003, FR-007)
 
 **Checkpoint**: Browser chrome scaled; Scenarios 4–5 pass.
 
@@ -98,12 +98,12 @@
 
 **Purpose**: Regression checks, legacy workspace, operator sign-off (plan Phase E, SC-004).
 
-- [ ] T026 Smoke-test Folders tab comic list after `ComicBrowserControl` changes (shared instance with Library)
-- [ ] T027 Run quickstart.md Scenario 6 at 150% — select, sort, group, search, open comic, ctrl+wheel resize (FR-005, SC-004)
-- [ ] T028 Run quickstart.md Scenario 7 — legacy workspace/view config at 100% saved, load at 150% (FR-004)
-- [ ] T029 Run quickstart.md Scenarios 1–8 at 125%, 150%, and 200%; record results in `specs/003-library-hidpi-layout/validation-results.md`
-- [ ] T030 Run quickstart.md Scenario 8 (dark mode) at 150% per C-CLL-007
-- [ ] T031 Note DPI refresh latency in `validation-results.md` — whether `ApplyComicBrowserMetrics()` feels instant (<100 ms subjective) on scale change
+- [x] T026 Smoke-test Folders tab comic list after `ComicBrowserControl` changes (shared instance with Library)
+- [x] T027 Run quickstart.md Scenario 6 at 150% — select, sort, group, search, open comic, ctrl+wheel resize (FR-005, SC-004)
+- [x] T028 Run quickstart.md Scenario 7 — legacy workspace/view config at 100% saved, load at 150% (FR-004)
+- [x] T029 Run quickstart.md Scenarios 1–8 at 125%, 150%, and 200%; record results in `specs/003-library-hidpi-layout/validation-results.md`
+- [x] T030 Run quickstart.md Scenario 8 (dark mode) at 150% per C-CLL-007
+- [x] T031 Note DPI refresh latency in `validation-results.md` — whether `ApplyComicBrowserMetrics()` feels instant (<100 ms subjective) on scale change
 
 ---
 
