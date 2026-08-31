@@ -15,6 +15,14 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 {
 	public partial class ComicExplorerView : SubView, ISidebar
 	{
+		private const int DesignSidebarExpandedWidth = 252;
+
+		private const int DesignPreviewExpandedHeight = 207;
+
+		private const int DesignCaptionMargin = 2;
+
+		private const int DesignPreviewBottomPadding = 6;
+
 		private ComicListBrowser comicListBrowser;
 
 		private ComicBook[] comicInfoBooks = new ComicBook[0];
@@ -267,18 +275,62 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			InitializeComponent();
 			pluginContainer.Expanded = false;
 			((ISidebar)this).Preview = false;
+			if (!base.DesignMode)
+			{
+				FormUtility.DpiScaleChanged += OnDpiScaleChanged;
+				ApplyExplorerShellMetrics();
+			}
 		}
 
 		protected override void OnLoad(EventArgs e)
 		{
 			base.OnLoad(e);
 			ComicBrowser.ItemView.SelectedIndexChanged += ItemView_SelectedIndexChanged;
+			if (!base.DesignMode)
+			{
+				ApplyExplorerShellMetrics();
+			}
+		}
+
+		public void ApplyExplorerShellMetrics()
+		{
+			if (base.DesignMode || sidePanel == null)
+			{
+				return;
+			}
+			if (sidePanel.ExpandedWidth <= DesignSidebarExpandedWidth)
+			{
+				sidePanel.ExpandedWidth = FormUtility.ScaleDpiX(DesignSidebarExpandedWidth);
+			}
+			if (previewPane.ExpandedWidth <= DesignPreviewExpandedHeight)
+			{
+				previewPane.ExpandedWidth = FormUtility.ScaleDpiY(DesignPreviewExpandedHeight);
+			}
+			Padding captionMargin = new Padding(FormUtility.ScaleDpiX(DesignCaptionMargin));
+			smallComicPreview.CaptionMargin = captionMargin;
+			comicBrowser.CaptionMargin = captionMargin;
+			UpdatePreviewPadding();
+		}
+
+		private void OnDpiScaleChanged(object sender, EventArgs e)
+		{
+			if (!base.IsHandleCreated || base.DesignMode)
+			{
+				return;
+			}
+			if (InvokeRequired)
+			{
+				BeginInvoke(new MethodInvoker(ApplyExplorerShellMetrics));
+				return;
+			}
+			ApplyExplorerShellMetrics();
 		}
 
 		private void UpdatePreviewPadding()
 		{
-			previewPane.Padding = new Padding(0, 0, 0, (pluginContainer.IsVisibleSet() && pluginContainer.Dock == DockStyle.Bottom) ? 6 : 0);
-			pluginContainer.Padding = new Padding(0, 0, 0, (pluginContainer.Dock == DockStyle.Bottom) ? 6 : 0);
+			int bottomPadding = (pluginContainer.IsVisibleSet() && pluginContainer.Dock == DockStyle.Bottom) ? FormUtility.ScaleDpiY(DesignPreviewBottomPadding) : 0;
+			previewPane.Padding = new Padding(0, 0, 0, bottomPadding);
+			pluginContainer.Padding = new Padding(0, 0, 0, (pluginContainer.Dock == DockStyle.Bottom) ? FormUtility.ScaleDpiY(DesignPreviewBottomPadding) : 0);
 			pluginPlaceholder.Visible = !pluginContainer.IsVisibleSet() || pluginContainer.Dock != DockStyle.Bottom;
 		}
 

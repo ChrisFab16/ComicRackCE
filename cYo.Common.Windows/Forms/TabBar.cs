@@ -55,6 +55,8 @@ namespace cYo.Common.Windows.Forms
 
 			private bool showText = true;
 
+			private bool imageAtDisplayScale;
+
 			private bool closeButtonHot;
 
 			[DefaultValue(null)]
@@ -291,6 +293,19 @@ namespace cYo.Common.Windows.Forms
 				set
 				{
 					SetValue(ref showText, value);
+				}
+			}
+
+			[DefaultValue(false)]
+			public bool ImageAtDisplayScale
+			{
+				get
+				{
+					return imageAtDisplayScale;
+				}
+				set
+				{
+					SetValue(ref imageAtDisplayScale, value);
 				}
 			}
 
@@ -605,6 +620,8 @@ namespace cYo.Common.Windows.Forms
 
 		private bool drawBaseLine = true;
 
+		private bool closeImageAtDisplayScale;
+
 		private int leftIndent;
 
 		private int minimumTabWidth = 250;
@@ -701,6 +718,19 @@ namespace cYo.Common.Windows.Forms
 			set
 			{
 				SetValue(ref closeImage, value);
+			}
+		}
+
+		[DefaultValue(false)]
+		public bool CloseImageAtDisplayScale
+		{
+			get
+			{
+				return closeImageAtDisplayScale;
+			}
+			set
+			{
+				SetValue(ref closeImageAtDisplayScale, value);
 			}
 		}
 
@@ -1799,10 +1829,10 @@ namespace cYo.Common.Windows.Forms
 				num2 += item.Padding.Left;
 				int num5 = (item.ShowText ? TextRenderer.MeasureText(item.Text, item.GetFont(Font), new Size(int.MaxValue, int.MaxValue), item.TextFormat).Width : 0) + 4;
 				num5 += 2;
-				num5 += FormUtility.ScaleDpiX(item.ImageSize.Width);
+				num5 += item.ImageAtDisplayScale ? item.ImageSize.Width : FormUtility.ScaleDpiX(item.ImageSize.Width);
 				if (item.CanClose && closeImage != null)
 				{
-					num5 += FormUtility.ScaleDpiX(closeImage.Width) + 4;
+					num5 += (closeImageAtDisplayScale ? closeImage.Width : FormUtility.ScaleDpiX(closeImage.Width)) + 4;
 				}
 				if (item.AdjustWidth)
 				{
@@ -1819,7 +1849,9 @@ namespace cYo.Common.Windows.Forms
 				}
 				if (item.CanClose && closeImage != null && (item.State == TabItemState.Hot || item.State == TabItemState.Selected))
 				{
-					item.CloseBounds = new Rectangle(item.Bounds.Right - FormUtility.ScaleDpiX(closeImage.Width) - 2, item.Bounds.Top + 2, FormUtility.ScaleDpiX(closeImage.Width), FormUtility.ScaleDpiY(closeImage.Height));
+					int closeWidth = closeImageAtDisplayScale ? closeImage.Width : FormUtility.ScaleDpiX(closeImage.Width);
+					int closeHeight = closeImageAtDisplayScale ? closeImage.Height : FormUtility.ScaleDpiY(closeImage.Height);
+					item.CloseBounds = new Rectangle(item.Bounds.Right - closeWidth - 2, item.Bounds.Top + 2, closeWidth, closeHeight);
 				}
 				else
 				{
@@ -1859,12 +1891,14 @@ namespace cYo.Common.Windows.Forms
 			{
 				try
 				{
-					gr.DrawImage(item.Image, bounds.Left, bounds.Top, FormUtility.ScaleDpiX(item.ImageSize.Width), FormUtility.ScaleDpiY(item.ImageSize.Height));
+					int imageWidth = item.ImageAtDisplayScale ? item.ImageSize.Width : FormUtility.ScaleDpiX(item.ImageSize.Width);
+					int imageHeight = item.ImageAtDisplayScale ? item.ImageSize.Height : FormUtility.ScaleDpiY(item.ImageSize.Height);
+					gr.DrawImage(item.Image, bounds.Left, bounds.Top, imageWidth, imageHeight);
 				}
 				catch (Exception)
 				{
 				}
-				bounds = bounds.Pad(FormUtility.ScaleDpiX(item.ImageSize.Width), 0);
+				bounds = bounds.Pad(item.ImageAtDisplayScale ? item.ImageSize.Width : FormUtility.ScaleDpiX(item.ImageSize.Width), 0);
 			}
 			bounds = bounds.Pad(0, 2, item.CloseBounds.Width);
 			TextRenderer.DrawText(gr, item.Text, item.GetFont(Font), bounds, ForeColor, item.TextFormat);
