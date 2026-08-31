@@ -142,5 +142,58 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			InfoBrowserSize = new Size(200, 150).ScaleDpi();
 			ShowBrowser = true;
 		}
+
+		public static ComicExplorerViewSettings NormalizeLegacySplits(ComicExplorerViewSettings settings)
+		{
+			if (settings == null)
+			{
+				return new ComicExplorerViewSettings();
+			}
+			try
+			{
+				if (FormUtility.DpiScale.Y <= 1.01f)
+				{
+					return settings;
+				}
+				if (settings.TopBrowserSplit <= 0)
+				{
+					settings.TopBrowserSplit = new ComicExplorerViewSettings().TopBrowserSplit;
+				}
+				else if (settings.TopBrowserSplit <= 150)
+				{
+					settings.TopBrowserSplit = FormUtility.ScaleDpiY(settings.TopBrowserSplit);
+				}
+				if (settings.BrowserSplit <= 0)
+				{
+					settings.BrowserSplit = new ComicExplorerViewSettings().BrowserSplit;
+				}
+				else if (settings.BrowserSplit <= 250)
+				{
+					settings.BrowserSplit = FormUtility.ScaleDpiY(settings.BrowserSplit);
+				}
+				if (settings.PreviewSplit <= 0)
+				{
+					settings.PreviewSplit = new ComicExplorerViewSettings().PreviewSplit;
+				}
+				else if (settings.PreviewSplit <= 200)
+				{
+					settings.PreviewSplit = FormUtility.ScaleDpiY(settings.PreviewSplit);
+				}
+				Size infoSize = settings.InfoBrowserSize;
+				if (infoSize.Width <= 0 || infoSize.Height <= 0)
+				{
+					settings.InfoBrowserSize = new ComicExplorerViewSettings().InfoBrowserSize;
+				}
+				else if (infoSize.Width <= 200 && infoSize.Height <= 150)
+				{
+					settings.InfoBrowserSize = infoSize.ScaleDpi();
+				}
+				return settings;
+			}
+			catch
+			{
+				return new ComicExplorerViewSettings();
+			}
+		}
 	}
 }

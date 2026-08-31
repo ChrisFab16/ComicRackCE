@@ -64,6 +64,8 @@ namespace cYo.Common.Windows.Forms
 
 		private static PointF dpiScale = PointF.Empty;
 
+		public static event EventHandler DpiScaleChanged;
+
 		public static Dictionary<string, Rectangle> FormPositions
 		{
 			get
@@ -96,6 +98,14 @@ namespace cYo.Common.Windows.Forms
 				}
 				return dpiScale;
 			}
+		}
+
+		public static PointF RefreshDpiScale()
+		{
+			dpiScale = PointF.Empty;
+			PointF scale = DpiScale;
+			DpiScaleChanged?.Invoke(null, EventArgs.Empty);
+			return scale;
 		}
 
 		public static object FindActiveService(this Control root, Type service)

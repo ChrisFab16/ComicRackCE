@@ -732,6 +732,7 @@ namespace cYo.Projects.ComicRack.Viewer
 			LocalizeUtility.UpdateRightToLeft(this);
 			InitializeComponent();
 			base.Size = base.Size.ScaleDpi();
+			DpiChanged += MainForm_DpiChanged;
 			statusStrip.Height = (int)tsText.Font.GetHeight() + FormUtility.ScaleDpiY(8);
 			SystemEvents.DisplaySettingsChanging += delegate
 			{
@@ -739,6 +740,7 @@ namespace cYo.Projects.ComicRack.Viewer
 			};
 			SystemEvents.DisplaySettingsChanged += delegate
 			{
+				FormUtility.RefreshDpiScale();
 				SetWorkspaceDisplayOptions(Program.Settings.CurrentWorkspace);
 			};
 			if (Program.ExtendedSettings.DisableFoldersView)
@@ -4571,6 +4573,11 @@ namespace cYo.Projects.ComicRack.Viewer
 				else if (qr.HasFlag(QuestionResult.Ok))
 					Program.StartDocument(NightlyDownloadLinkEXE);
 			}
+		}
+
+		private void MainForm_DpiChanged(object sender, DpiChangedEventArgs e)
+		{
+			FormUtility.RefreshDpiScale();
 		}
 	}
 }

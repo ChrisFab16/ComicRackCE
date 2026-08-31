@@ -27,6 +27,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 		{
 			if (disposing)
 			{
+				FormUtility.DpiScaleChanged -= OnDpiScaleChanged;
 				components?.Dispose();
 			}
 			base.Dispose(disposing);
