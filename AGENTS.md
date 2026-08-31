@@ -31,16 +31,19 @@ git merge --ff-only upstream/master
 git checkout development
 ```
 
-## Spec Kit (planned on `development`)
+## Spec Kit (enabled on `development`)
 
-When Spec Kit is enabled on `development`, follow the full workflow per global rules §22–§24:
+Spec Kit is initialized on `development` with Cursor Agent integration and the **git extension**.
 
-1. `specify init` + **git extension** (`specify extension add git`) and configured `auto_commit`
-2. Feature flow: **specify → plan → tasks → analyze → implement**
-3. `/speckit-analyze` is mandatory after tasks and before implement
-4. Bugfixes and new scope need specs — no silent hotfixes on `master`
+- **Workflow:** `/speckit-constitution` → `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → **`/speckit-analyze`** → `/speckit-implement`
+- **Analyze gate:** mandatory after tasks and before implement (global rules §24)
+- **Bugfixes / new scope:** need specs — no silent hotfixes on `master`
+- **Feature branches:** git extension creates `NNN-short-name` branches from current branch (stay on `development` when starting features)
+- **Auto-commit:** enabled for `after_*` artifact steps in `.specify/extensions/git/git-config.yml` (constitution, spec, plan, tasks, analyze, checklist). `after_implement` stays off — enable when you want incremental code commits.
 
-Active feature path (when initialized): `.specify/feature.json`
+Active feature path: `.specify/feature.json` (created by `/speckit-specify`)
+
+**Next bootstrap step:** run `/speckit-constitution` to replace the template in `.specify/memory/constitution.md`.
 
 ## Tech stack
 
