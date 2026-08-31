@@ -13,6 +13,7 @@ Manual validation required (Constitution III). Automated tests optional suppleme
 - Visual Studio 2022 or `msbuild ComicRack.sln /p:Configuration=Debug`
 - Test folder tree with ≥20 subfolders (local disk)
 - 3+ favorite folders including one with a long path (>60 chars)
+- Optional: OneDrive or UNC path visible in shell tree for Scenario 8
 
 ---
 
@@ -29,7 +30,7 @@ Run: `ComicRack/bin/Debug/ComicRack.exe` (or VS F5).
 
 ## Display scale matrix
 
-Run scenarios **A–D** at each scale. Change scale via **Settings → System → Display → Scale**, then **sign out/in** or reboot if WinForms does not pick up change.
+Run scenarios at each scale. Change scale via **Settings → System → Display → Scale**, then **sign out/in** or reboot if WinForms does not pick up change.
 
 | ID | Scale | Priority |
 |----|-------|------------|
@@ -37,6 +38,13 @@ Run scenarios **A–D** at each scale. Change scale via **Settings → System �
 | B | 125% | Required |
 | C | 150% | Required (primary) |
 | D | 200% | Required |
+
+### Scale-change method (record in validation-results)
+
+For US1 acceptance (proportionate layout after scale change), note which method you used:
+
+- **Restart**: change display scale → sign out/in or reboot → launch app (primary path; most reliable on .NET 4.8 WinForms)
+- **Live / mixed-DPI**: change scale or move window without restart (best-effort; optional Mixed-DPI section below)
 
 ---
 
@@ -55,7 +63,7 @@ Run scenarios **A–D** at each scale. Change scale via **Settings → System �
 - No vertical clipping on selected/unselected text.
 - Row height comfortably fits text + icon.
 
-Repeat at **D (200%)**.
+Repeat at **D (200%)** and **B (125%)**.
 
 ---
 
@@ -79,14 +87,16 @@ Repeat at **D (200%)**.
 
 **Steps**
 
-1. At **150%**, fresh workspace (or reset Folders layout).
+1. At **150%**, use a **fresh workspace** (new profile or reset Folders layout — not a legacy workspace saved at 100%).
 2. Expand favorites with ≤3 entries.
 3. Count visible tree rows without scrolling.
 
 **Expected**
 
 - ≥ 5 full tree rows (SC-003).
-- Toolbar icons sharp; buttons easy to click.
+- Toolbar icons sharp; buttons easy to click (scaled hit targets, not image-only).
+
+**Note**: Legacy workspace split behavior is validated separately in Scenario 5 **after** workspace normalization tasks (T027–T028).
 
 ---
 
@@ -104,7 +114,9 @@ At any scale:
 
 ---
 
-## Scenario 5: Workspace migration (C-WSP-001)
+## Scenario 5: Workspace migration (C-WSP-001 / C-WSP-003)
+
+**When**: After Phase 6 tasks T027–T028 (normalization + fallback) are implemented.
 
 1. At **100%**, set favorites height via splitter, save workspace (exit app normally).
 2. Switch display to **150%**, restart app, load workspace.
@@ -113,14 +125,42 @@ At any scale:
 
 - Favorites height proportionate (not stuck at tiny 100% pixel size).
 - Sidebar still usable without manual reset.
+- Favorites pane not collapsed to unusable sliver (< scaled 40px effective) unless user saved it that way.
 
 ---
 
 ## Scenario 6: Dark mode (C-FSL-007)
 
-Enable dark theme in ComicRack preferences. Repeat Scenario 1 at 150%.
+Enable dark theme in ComicRack preferences. Repeat Scenario 1 at 150%; also spot-check favorites tiles if US2 complete.
 
 **Expected**: Readable text and selection on tree + favorites.
+
+**Checkpoint**: US1 implementers run tree portion after attaching NiceTreeSkin (T015); full Scenario 6 at sign-off.
+
+---
+
+## Scenario 7: Empty favorites (spec edge case)
+
+**Steps**
+
+1. Remove all favorites (or use profile with none).
+2. At **150%**, open Folders tab with favorites panel expanded and collapsed.
+
+**Expected**
+
+- Tree docks correctly; no awkward dead space or layout collapse.
+- Toolbar and tree remain usable.
+
+---
+
+## Scenario 8: Special shell folders (spec edge case)
+
+**Steps**
+
+1. At **150%**, expand a OneDrive, network (UNC), or other special shell folder if available.
+2. Select nodes; verify icons and labels align within row bounds.
+
+**Expected**: Icons and labels align; no regression vs local folders.
 
 ---
 
@@ -128,7 +168,27 @@ Enable dark theme in ComicRack preferences. Repeat Scenario 1 at 150%.
 
 Move window from primary (150%) to secondary monitor (100% or 125%) if available.
 
-**Expected**: No crash; layout acceptable or refreshes after move (best-effort per spec edge case).
+**Expected**: No crash; layout acceptable or refreshes after move (best-effort per spec edge case). Record whether restart was required.
+
+---
+
+## Optional: Performance spot-check (plan)
+
+After DPI change or monitor move (with T007 wired):
+
+1. Trigger layout refresh (move window or change scale if live refresh works).
+2. Note subjective responsiveness — layout should update without noticeable stall (<100 ms target on typical hardware).
+
+Record pass/fail and hardware notes in validation-results.
+
+---
+
+## Success criteria not in v1 sign-off
+
+| ID | Reason |
+|----|--------|
+| SC-001 | Moderated 90% study — use subjective “legible?” column in sign-off template instead |
+| SC-004 | Requires pre-change baseline timing study — deferred; not blocking v1 |
 
 ---
 
@@ -142,9 +202,14 @@ Record in `validation-results.md` (create at implement time):
 | 1 Tree   |      |      |      |      |        |      |
 | 2 Favorites |   |      |      |      |        |      |
 | 3 Splits |      |      |      |      |        |      |
-| 4 Behavior |    | pass |      |      |        |      |
+| 4 Behavior |    |      |      |      |        |      |
 | 5 Workspace |  |      |      |      |        |      |
 | 6 Dark   |      |      |      |      |        |      |
+| 7 Empty favs |  |      |      |      |        |      |
+| 8 Shell folders | |    |      |      |        |      |
+| Perf spot-check | |   |      |      |        |      |
+| Scale method | restart / live |      |      |        |      |
+| SC-001 legible (Y/N) | |  |      |      |        |      |
 ```
 
-**Done when**: Scenarios 1–5 pass at 125%, 150%, and 200%; no FR-007 regressions.
+**Done when**: Scenarios **1–8** pass at **125%, 150%, and 200%**; Scenario **5** pass after T027–T028; no FR-007 regressions (Scenario 4); performance spot-check recorded (T033).

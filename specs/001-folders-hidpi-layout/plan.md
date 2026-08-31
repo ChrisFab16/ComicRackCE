@@ -16,7 +16,7 @@ Improve legibility and spacing of the **Folders** tab sidebar (toolbar, favorite
 **Testing**: Manual quickstart at 100%/125%/150%/200% (Constitution III); optional future unit tests for `FormUtility` DPI math — not blocking v1  
 **Target Platform**: Windows 10/11 desktop  
 **Project Type**: Desktop WinForms application (ComicRackCE)  
-**Performance Goals**: No perceptible lag on DPI change or folder tree expand; layout refresh < 100 ms on typical machines  
+**Performance Goals**: No perceptible lag on DPI change or folder tree expand; layout refresh < 100 ms on typical machines — validated via manual spot-check in quickstart.md (T033 / validation-results), not automated in v1  
 **Constraints**: FR-007 (no behavior change); FR-008 (workspace compatibility); upstream-ready focused diff (Constitution I); reuse `ScaleDpi` not parallel scaling API (Constitution V)  
 **Scale/Scope**: ~10 source files, Folders sidebar + shared DPI utilities + workspace apply path; comic list pane out of scope except sidebar width side-effects
 

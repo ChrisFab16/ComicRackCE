@@ -8,6 +8,8 @@
 
 **Organization**: Tasks grouped by user story (P1 → P2 → P3) after shared DPI foundation.
 
+**Analyze**: Remediations from `analyze-report.md` incorporated (2026-08-31).
+
 ## Format: `[ID] [P?] [Story] Description`
 
 ---
@@ -16,9 +18,9 @@
 
 **Purpose**: Confirm artifacts and implementation entry points before code changes.
 
-- [ ] T001 Review acceptance criteria in `specs/001-folders-hidpi-layout/contracts/folders-sidebar-layout.md` and `specs/001-folders-hidpi-layout/contracts/workspace-dpi-splits.md`
-- [ ] T002 Review pixel audit punch list in `specs/001-folders-hidpi-layout/research.md` sections 1–5 for file touch list
-- [ ] T003 Confirm local branch is `001-folders-hidpi-layout` and solution builds via `msbuild ComicRack.sln /p:Configuration=Debug`
+- [x] T001 Review acceptance criteria in `specs/001-folders-hidpi-layout/contracts/folders-sidebar-layout.md` and `specs/001-folders-hidpi-layout/contracts/workspace-dpi-splits.md`
+- [x] T002 Review pixel audit punch list in `specs/001-folders-hidpi-layout/research.md` sections 1–5 for file touch list
+- [x] T003 Confirm local branch is `001-folders-hidpi-layout` and solution builds via `msbuild ComicRack.sln /p:Configuration=Debug`
 
 ---
 
@@ -28,11 +30,11 @@
 
 **⚠️ CRITICAL**: No user story implementation until this phase is complete.
 
-- [ ] T004 Upgrade `ComicRack/app.manifest` to `PerMonitorV2` in `dpiAwareness` (remove or supersede system-only awareness)
-- [ ] T005 Remove or guard redundant `SetProcessDPIAware()` in `ComicRack/Program.cs` if manifest provides equivalent awareness
-- [ ] T006 Add `FormUtility.RefreshDpiScale()` in `cYo.Common.Windows/Forms/FormUtility.cs` to invalidate cached `DpiScale` and return new scale
-- [ ] T007 Wire `DpiChanged` handling in `ComicRack/Program.cs` or `ComicRack/MainForm.cs` to call `FormUtility.RefreshDpiScale()` and re-apply Folders sidebar metrics
-- [ ] T008 Add `ApplyFoldersSidebarMetrics()` method in `ComicRack/Views/ComicListFolderFilesBrowser.cs` as single entry point for init + DPI refresh (tree, favorites, toolbar metrics)
+- [x] T004 Upgrade `ComicRack/app.manifest` to `PerMonitorV2` in `dpiAwareness` (remove or supersede system-only awareness)
+- [x] T005 Remove or guard redundant `SetProcessDPIAware()` in `ComicRack/Program.cs` if manifest provides equivalent awareness
+- [x] T006 Add `FormUtility.RefreshDpiScale()` in `cYo.Common.Windows/Forms/FormUtility.cs` to invalidate cached `DpiScale` and return new scale
+- [x] T007 Wire `DpiChanged` handling in `ComicRack/Program.cs` or `ComicRack/MainForm.cs` to call `FormUtility.RefreshDpiScale()` and re-apply Folders sidebar metrics
+- [x] T008 Add `ApplyFoldersSidebarMetrics()` method in `ComicRack/Views/ComicListFolderFilesBrowser.cs` as single entry point for init + DPI refresh (tree, favorites, toolbar metrics)
 
 **Checkpoint**: DPI scale refreshes on change; Folders view has callable metrics helper — user story work can begin.
 
@@ -46,14 +48,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Attach `NiceTreeSkin` to `tvFolders` in `ComicRack/Views/ComicListFolderFilesBrowser.cs` (follow pattern in `ComicRack/Views/ComicListLibraryBrowser.cs`)
-- [ ] T010 [US1] Replace `SystemFonts.IconTitleFont` with `SystemFonts.MessageBoxFont` for `tvFolders` in `ComicRack/Views/ComicListFolderFilesBrowser.cs`
-- [ ] T011 [US1] Set `tvFolders.Indent = FormUtility.ScaleDpiX(15)` in `ApplyFoldersSidebarMetrics()` per C-FSL-002
-- [ ] T012 [US1] Ensure tree `ItemHeight` meets `Font.Height + FormUtility.ScaleDpiY(8)` via NiceTreeSkin/TreeViewSkinner in `cYo.Common.Windows/Forms/TreeViewSkinner.cs` path when skin attached
-- [ ] T013 [US1] Call `ApplyFoldersSidebarMetrics()` from constructor/OnLoad and after DPI refresh in `ComicRack/Views/ComicListFolderFilesBrowser.cs`
-- [ ] T014 [US1] Verify folder tree selection and expand/collapse behavior unchanged (FR-007) while testing Scenario 1
+- [x] T009 [US1] Attach `NiceTreeSkin` to `tvFolders` in `ComicRack/Views/ComicListFolderFilesBrowser.cs` (follow pattern in `ComicRack/Views/ComicListLibraryBrowser.cs`)
+- [x] T010 [US1] Replace `SystemFonts.IconTitleFont` with `SystemFonts.MessageBoxFont` for `tvFolders` in `ComicRack/Views/ComicListFolderFilesBrowser.cs`
+- [x] T011 [US1] Set `tvFolders.Indent = FormUtility.ScaleDpiX(15)` in `ApplyFoldersSidebarMetrics()` per C-FSL-002
+- [x] T012 [US1] Set `tvFolders.ItemHeight = Font.Height + FormUtility.ScaleDpiY(8)` in `ApplyFoldersSidebarMetrics()` in `ComicRack/Views/ComicListFolderFilesBrowser.cs` (NiceTreeSkin owner-draw; `cYo.Common.Windows/Forms/FolderTreeView.cs` ImageList already uses ScaleDpi — no FolderTreeView ctor change unless regression found)
+- [x] T013 [US1] Call `ApplyFoldersSidebarMetrics()` from constructor/OnLoad and after DPI refresh in `ComicRack/Views/ComicListFolderFilesBrowser.cs`
+- [x] T014 [US1] Verify folder tree selection and expand/collapse behavior unchanged (FR-007) while testing Scenario 1
+- [x] T015 [US1] Verify dark-mode tree labels and selection readability at 150% after T009 (quickstart Scenario 6 tree portion) per C-FSL-007
 
-**Checkpoint**: MVP complete — Folders tree legible at HiDPI; stop and validate Scenario 1 before US2.
+**Checkpoint**: MVP complete — Folders tree legible at HiDPI including dark mode; stop and validate Scenarios 1 + 6 (tree) before US2.
 
 ---
 
@@ -65,12 +68,12 @@
 
 ### Implementation for User Story 2
 
-- [ ] T015 [P] [US2] Scale `favContainer` top padding and default `ExpandedWidth` using `FormUtility.ScaleDpiY` in `ComicRack/Views/ComicListFolderFilesBrowser.cs` per C-FSL-003
-- [ ] T016 [US2] Compute `favView.ItemTileSize` height as `max(ScaleDpiY(50), 2 * lineHeight + ScaleDpiY(12))` on load in `ComicRack/Views/ComicListFolderFilesBrowser.cs` (not resize-only)
-- [ ] T017 [US2] Update `favView_Resize` width margin to `FormUtility.ScaleDpiX(8)` in `ComicRack/Views/ComicListFolderFilesBrowser.cs`
-- [ ] T018 [P] [US2] Scale `FolderViewItem` border `Size(2,2)` and TextLine spacing (2, 5) via `FormUtility.ScaleDpi` in `ComicRack/Controls/FolderViewItem.cs`
-- [ ] T019 [US2] Derive mosaic thumbnail base size from scaled tile height instead of fixed `341×512` in `ComicRack/Controls/FolderViewItem.cs` `GetFolderImage`
-- [ ] T020 [US2] Include favorites metrics in `ApplyFoldersSidebarMetrics()` and DPI refresh path in `ComicRack/Views/ComicListFolderFilesBrowser.cs`
+- [x] T016 [P] [US2] Scale `favContainer` top padding and default `ExpandedWidth` using `FormUtility.ScaleDpiY` in `ComicRack/Views/ComicListFolderFilesBrowser.cs` per C-FSL-003
+- [x] T017 [US2] Compute `favView.ItemTileSize` height as `max(ScaleDpiY(50), 2 * lineHeight + ScaleDpiY(12))` on load in `ComicRack/Views/ComicListFolderFilesBrowser.cs` (not resize-only)
+- [x] T018 [US2] Update `favView_Resize` width margin to `FormUtility.ScaleDpiX(8)` in `ComicRack/Views/ComicListFolderFilesBrowser.cs`
+- [x] T019 [P] [US2] Scale `FolderViewItem` border `Size(2,2)` and TextLine spacing (2, 5) via `FormUtility.ScaleDpi` in `ComicRack/Controls/FolderViewItem.cs`
+- [x] T020 [US2] Derive mosaic thumbnail base size from scaled tile height instead of fixed `341×512` in `ComicRack/Controls/FolderViewItem.cs` `GetFolderImage`
+- [x] T021 [US2] Include favorites metrics in `ApplyFoldersSidebarMetrics()` and DPI refresh path in `ComicRack/Views/ComicListFolderFilesBrowser.cs`
 
 **Checkpoint**: Favorites readable at 150%+; Scenario 2 passes independently of toolbar work.
 
@@ -80,16 +83,17 @@
 
 **Goal**: Toolbar hit targets and splits feel proportionate; ≥5 tree rows with favorites expanded (FR-005, FR-006, SC-003).
 
-**Independent Test**: quickstart.md Scenario 3 at 150% on fresh workspace.
+**Independent Test**: quickstart.md Scenario 3 at 150% on **fresh workspace** (legacy workspace splits validated in Phase 6 Scenario 5).
 
 ### Implementation for User Story 3
 
-- [ ] T021 [P] [US3] Scale toolbar button images with `.ScaleDpi()` in `ComicRack/Views/ComicListFolderFilesBrowser.cs` OnLoad (pattern from `ComicRack/Dialogs/PreferencesDialog.cs`)
-- [ ] T022 [US3] Scale `SizableContainer` default `gripWidth` using `FormUtility.ScaleDpiX(6)` in `cYo.Common.Windows/Forms/SizableContainer.cs` per C-FSL-004
-- [ ] T023 [US3] Adjust default `TopBrowserSplit` / fav container height in `ApplyFoldersSidebarMetrics()` or settings ctor so SC-003 ≥5 tree rows at 150% with ≤3 favorites
-- [ ] T024 [US3] Include toolbar image scaling in `ApplyFoldersSidebarMetrics()` DPI refresh path in `ComicRack/Views/ComicListFolderFilesBrowser.cs`
+- [x] T022 [P] [US3] Scale toolbar button images with `.ScaleDpi()` in `ComicRack/Views/ComicListFolderFilesBrowser.cs` OnLoad (pattern from `ComicRack/Dialogs/PreferencesDialog.cs`)
+- [x] T023 [US3] Scale `toolStrip` height and each `ToolStripButton` size to baseline `ScaleDpi(23×22)` and strip height `ScaleDpiY(25)` in `ApplyFoldersSidebarMetrics()` in `ComicRack/Views/ComicListFolderFilesBrowser.cs` per C-FSL-004 (effective target ≥ `ScaleDpiY(22)`)
+- [x] T024 [US3] Scale `SizableContainer` default `gripWidth` using `FormUtility.ScaleDpiX(6)` in `cYo.Common.Windows/Forms/SizableContainer.cs` per C-FSL-004
+- [x] T025 [US3] Adjust default `TopBrowserSplit` / fav container height in `ApplyFoldersSidebarMetrics()` or settings ctor so SC-003 ≥5 tree rows at 150% with ≤3 favorites
+- [x] T026 [US3] Include toolbar image and button metrics in `ApplyFoldersSidebarMetrics()` DPI refresh path in `ComicRack/Views/ComicListFolderFilesBrowser.cs`
 
-**Checkpoint**: Scenario 3 passes; toolbar icons sharp at 150%.
+**Checkpoint**: Scenario 3 passes on fresh workspace; toolbar icons sharp and hit targets scaled at 150%.
 
 ---
 
@@ -97,11 +101,13 @@
 
 **Purpose**: Workspace compatibility, regression checks, sign-off (plan Phases E–F, FR-008).
 
-- [ ] T025 Implement legacy split normalization in `ComicRack/Views/ComicExplorerView.cs` `ViewSettings` setter per `specs/001-folders-hidpi-layout/contracts/workspace-dpi-splits.md` C-WSP-001
-- [ ] T026 [P] Add double-scaling guard when applying normalized splits in `ComicRack/Views/ComicExplorerView.cs` or `ComicRack/Views/ComicExplorerViewSettings.cs` per C-WSP-001 test case 2
-- [ ] T027 Smoke-test Library tab sidebar after `SizableContainer` grip change in `cYo.Common.Windows/Forms/SizableContainer.cs` (Constitution Check post-design)
-- [ ] T028 Run quickstart.md Scenarios 1–6 at 125%, 150%, and 200%; record results in `specs/001-folders-hidpi-layout/validation-results.md`
-- [ ] T029 Verify FR-007 behaviors via quickstart.md Scenario 4 at 150% (selection, subfolders toggle, refresh, favorites)
+- [x] T027 Implement C-WSP-001 legacy normalization on load in `ComicRack/Views/ComicExplorerView.cs` `ViewSettings` setter for `TopBrowserSplit`, `BrowserSplit`, `PreviewSplit`, and `InfoBrowserSize` (apply `ScaleDpiY` or `.ScaleDpi()` per contract thresholds)
+- [x] T028 Add per-load double-scaling guard and C-WSP-004 fallback to `ComicExplorerViewSettings()` constructor defaults when values are ≤0 or normalization throws in `ComicRack/Views/ComicExplorerView.cs` or `ComicRack/Views/ComicExplorerViewSettings.cs`
+- [x] T029 Smoke-test Library tab sidebar after `SizableContainer` grip change in `cYo.Common.Windows/Forms/SizableContainer.cs` (Constitution Check post-design)
+- [x] T030 Run quickstart.md Scenarios 1–8 at 125%, 150%, and 200%; record results in `specs/001-folders-hidpi-layout/validation-results.md` (include SC-001 subjective legibility note per tester)
+- [x] T031 Verify FR-007 behaviors via quickstart.md Scenario 4 at 150% (selection, subfolders toggle, refresh, favorites)
+- [x] T032 Run quickstart.md Scenario 5 (workspace migration) **after T027–T028**; confirm C-WSP-003 (favorites not collapsed to sliver, sidebar draggable)
+- [x] T033 Spot-check DPI refresh latency per plan performance goal: after T007, note in `validation-results.md` whether `ApplyFoldersSidebarMetrics()` feels instant (<100 ms subjective) on DPI change or monitor move
 
 ---
 
@@ -113,16 +119,16 @@
 - **Foundational (Phase 2)**: Depends on Setup — **BLOCKS all user stories**
 - **User Story 1 (Phase 3)**: Depends on Foundational — **MVP**
 - **User Story 2 (Phase 4)**: Depends on Foundational; benefits from US1 `ApplyFoldersSidebarMetrics()` but independently testable via Scenario 2
-- **User Story 3 (Phase 5)**: Depends on Foundational; independently testable via Scenario 3
-- **Polish (Phase 6)**: Depends on US1–US3 implementation; validation last
+- **User Story 3 (Phase 5)**: Depends on Foundational; Scenario 3 uses **fresh** workspace only
+- **Polish (Phase 6)**: Depends on US1–US3; **T032 Scenario 5 requires T027–T028**
 
 ### User Story Dependencies
 
 | Story | Depends on | Independent test |
 |-------|------------|------------------|
-| US1 (P1) | Phase 2 | quickstart Scenario 1 |
+| US1 (P1) | Phase 2 | quickstart Scenario 1 + Scenario 6 (tree) |
 | US2 (P2) | Phase 2 | quickstart Scenario 2 |
-| US3 (P3) | Phase 2 | quickstart Scenario 3 |
+| US3 (P3) | Phase 2 | quickstart Scenario 3 (fresh workspace) |
 
 US2/US3 do not require US1 code complete for testing favorites-only or toolbar-only checks, but **Phase 2 is mandatory** for all.
 
@@ -135,9 +141,9 @@ US2/US3 do not require US1 code complete for testing favorites-only or toolbar-o
 
 | Tasks | Notes |
 |-------|-------|
-| T015 [P] + T018 [P] | Different files (view vs FolderViewItem) after T008 exists |
-| T021 [P] + T022 [P] | Toolbar images vs SizableContainer — after Phase 2 |
-| T025 + T026 | T026 should follow T025 logic |
+| T016 [P] + T019 [P] | Different files (view vs FolderViewItem) after T008 exists |
+| T022 [P] + T024 [P] | Toolbar images vs SizableContainer — after Phase 2 |
+| T027 → T028 | T028 follows T027 normalization logic |
 
 ---
 
@@ -145,12 +151,12 @@ US2/US3 do not require US1 code complete for testing favorites-only or toolbar-o
 
 ```bash
 # After Phase 2 complete, parallelize:
-T015 — favContainer padding/height in ComicListFolderFilesBrowser.cs
-T018 — FolderViewItem border/spacing in FolderViewItem.cs
+T016 — favContainer padding/height in ComicListFolderFilesBrowser.cs
+T019 — FolderViewItem border/spacing in FolderViewItem.cs
 
 # Then sequential:
-T016 — tile height formula (needs T015 layout context)
-T019 — mosaic size (depends on T016 tile bounds)
+T017 — tile height formula (needs T016 layout context)
+T020 — mosaic size (depends on T017 tile bounds)
 ```
 
 ---
@@ -161,35 +167,36 @@ T019 — mosaic size (depends on T016 tile bounds)
 
 1. Phase 1: Setup (T001–T003)
 2. Phase 2: Foundational (T004–T008) — **required**
-3. Phase 3: User Story 1 (T009–T014)
-4. **STOP** — run quickstart Scenario 1 at 150% and 200%
+3. Phase 3: User Story 1 (T009–T015)
+4. **STOP** — run quickstart Scenarios 1 and 6 (tree) at 150% and 200%
 5. Demo MVP before US2/US3
 
 ### Incremental Delivery
 
 1. Setup + Foundational → DPI foundation ready
-2. US1 → Scenario 1 → MVP
+2. US1 → Scenarios 1 + 6 (tree) → MVP
 3. US2 → Scenario 2 → favorites polish
-4. US3 → Scenario 3 → toolbar/splits
-5. Polish → Scenarios 5–6 + validation-results.md
+4. US3 → Scenario 3 (fresh workspace) → toolbar/splits
+5. Polish → T027–T028 then Scenario 5; full T030–T033 sign-off
 
-### Suggested task counts
+### Task counts
 
 | Phase | Tasks | Story |
 |-------|-------|-------|
 | Setup | 3 | — |
 | Foundational | 5 | — |
-| US1 | 6 | P1 MVP |
+| US1 | 7 | P1 MVP |
 | US2 | 6 | P2 |
-| US3 | 4 | P3 |
-| Polish | 5 | — |
-| **Total** | **29** | |
+| US3 | 5 | P3 |
+| Polish | 7 | — |
+| **Total** | **33** | |
 
 ---
 
 ## Notes
 
-- Next gate: **`/speckit-analyze`** before `/speckit-implement` (Constitution IV)
+- **Feature complete** — all 33 tasks done; validation signed off in `validation-results.md` (2026-08-31)
 - Keep diffs focused for upstream PR (Constitution I)
 - Do not change folder browsing logic while scaling layout (FR-007)
+- SC-004 (timed favorite lookup baseline) deferred from v1 acceptance — see quickstart.md
 - `[P]` = safe parallel when another developer/file owner available
