@@ -1116,13 +1116,9 @@ namespace cYo.Projects.ComicRack.Viewer
 			}
 		}
 
-		[DllImport("user32.dll")]
-		private static extern bool SetProcessDPIAware();
-
 		[STAThread]
 		private static int Main(string[] args)
 		{
-			SetProcessDPIAware();
 			ServicePointManager.Expect100Continue = false;
 			if (ExtendedSettings.WaitPid != 0)
 			{

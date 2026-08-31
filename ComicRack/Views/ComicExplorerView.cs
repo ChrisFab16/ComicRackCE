@@ -121,6 +121,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 				{
 					return;
 				}
+				value = ComicExplorerViewSettings.NormalizeLegacySplits(value);
 				bool enableAnimation = SizableContainer.EnableAnimation;
 				SizableContainer.EnableAnimation = false;
 				try

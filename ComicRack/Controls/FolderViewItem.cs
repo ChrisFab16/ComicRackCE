@@ -60,12 +60,12 @@ namespace cYo.Projects.ComicRack.Viewer.Controls
 				})
 				{
 					thumbTileRenderer.Font = font;
-					thumbTileRenderer.Border = new Size(2, 2);
+					thumbTileRenderer.Border = new Size(FormUtility.ScaleDpiX(2), FormUtility.ScaleDpiY(2));
 					thumbTileRenderer.ForeColor = foreColor;
 					thumbTileRenderer.BackColor = ThemeColors.ThumbnailViewItem.Back;
                     thumbTileRenderer.SelectionBackColor = StyledRenderer.GetSelectionColor(drawInfo.ControlFocused);
-					thumbTileRenderer.TextLines.Add(new TextLine(FileUtility.GetSafeFileName(Text), FC.GetRelative(font, 1.2f, FontStyle.Bold), foreColor2, (StringFormatFlags)0, StringAlignment.Near, 0, 2));
-					thumbTileRenderer.TextLines.Add(new TextLine(Text, FC.GetRelative(font, 0.8f), foreColor2, format, 0, 5));
+					thumbTileRenderer.TextLines.Add(new TextLine(FileUtility.GetSafeFileName(Text), FC.GetRelative(font, 1.2f, FontStyle.Bold), foreColor2, (StringFormatFlags)0, StringAlignment.Near, 0, FormUtility.ScaleDpiY(2)));
+					thumbTileRenderer.TextLines.Add(new TextLine(Text, FC.GetRelative(font, 0.8f), foreColor2, format, 0, FormUtility.ScaleDpiY(5)));
 					thumbTileRenderer.DrawTile(drawInfo.Graphics, bounds);
 					thumbTileRenderer.DisposeTextLines();
 				}
@@ -74,7 +74,9 @@ namespace cYo.Projects.ComicRack.Viewer.Controls
 
 		protected override void CreateThumbnail(ThumbnailKey key)
 		{
-			Bitmap bmp = GetFolderImage(Text, new Size(341, 512), 3, 4);
+			int tileHeight = View?.ItemTileSize.Height ?? FormUtility.ScaleDpiY(50);
+			int tileWidth = Math.Max(FormUtility.ScaleDpiX(64), tileHeight * 341 / 512);
+			Bitmap bmp = GetFolderImage(Text, new Size(tileWidth, tileHeight), 3, 4);
 			try
 			{
 				using (Program.ImagePool.Thumbs.AddImage(key, (ImageKey k) => ThumbnailImage.CreateFrom(bmp, bmp.Size)))

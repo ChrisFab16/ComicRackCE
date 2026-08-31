@@ -41,7 +41,7 @@ namespace cYo.Common.Windows.Forms
 
 		private bool forceLayout = true;
 
-		private int gripWidth = 6;
+		private int gripWidth;
 
 		private GripPosition grip = GripPosition.Top;
 
@@ -423,6 +423,7 @@ namespace cYo.Common.Windows.Forms
 
 		public SizableContainer()
 		{
+			gripWidth = FormUtility.ScaleDpiX(6);
 			SlideTime = 100;
 			AnimateExpand = true;
 			InitializeComponent();
