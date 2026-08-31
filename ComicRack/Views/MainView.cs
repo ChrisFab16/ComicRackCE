@@ -63,6 +63,14 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			AdjustWidth = false
 		};
 
+		private readonly Image libraryTabOriginalImage = Resources.Library;
+
+		private readonly Image foldersTabOriginalImage = Resources.FileBrowser;
+
+		private readonly Image pagesTabOriginalImage = Resources.ComicPage;
+
+		private readonly Bitmap tabCloseOriginalImage = Resources.Close;
+
 		private readonly CommandMapper commands = new CommandMapper();
 
 		private readonly List<ComicBrowserForm> openBrowsers = new List<ComicBrowserForm>();
@@ -162,6 +170,11 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			tsbFolders.CaptionClick += tab_CaptionClick;
 			tsbPages.CaptionClick += tab_CaptionClick;
 			LocalizeUtility.Localize(this, components);
+			if (!base.DesignMode)
+			{
+				FormUtility.DpiScaleChanged += OnDpiScaleChanged;
+				ApplyMainViewTabMetrics();
+			}
 		}
 
 		protected override void OnLoad(EventArgs e)
@@ -171,6 +184,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 			{
 				return;
 			}
+			ApplyMainViewTabMetrics();
 			if (base.ParentForm != null)
 			{
 				base.ParentForm.Resize += ParentForm_Resize;
@@ -218,6 +232,42 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 				InfoPanelRight = !InfoPanelRight;
 			}, true, () => InfoPanelRight, tsbInfoPanelLeft);
 			ShowView(Program.Settings.SelectedBrowser);
+		}
+
+		private void ApplyMainViewTabMetrics()
+		{
+			if (base.DesignMode)
+			{
+				return;
+			}
+			tabStrip.Font = SystemFonts.MessageBoxFont;
+			tsbLibrary.Image = ((Bitmap)libraryTabOriginalImage).ScaleDpi();
+			tsbLibrary.ImageAtDisplayScale = true;
+			tsbLibrary.Padding = new Padding(FormUtility.ScaleDpiX(8), 0, 0, 0);
+			tsbFolders.Image = ((Bitmap)foldersTabOriginalImage).ScaleDpi();
+			tsbFolders.ImageAtDisplayScale = true;
+			tsbFolders.Padding = new Padding(0, 0, FormUtility.ScaleDpiX(8), 0);
+			tsbPages.Image = ((Bitmap)pagesTabOriginalImage).ScaleDpi();
+			tsbPages.ImageAtDisplayScale = true;
+			tsbPages.Padding = new Padding(0, 0, FormUtility.ScaleDpiX(8), 0);
+			tabStrip.CloseImage = tabCloseOriginalImage.ScaleDpi();
+			tabStrip.CloseImageAtDisplayScale = true;
+			tabStrip.Height = tabStrip.GetPreferredSize(Size.Empty).Height;
+			tabStrip.Invalidate();
+		}
+
+		private void OnDpiScaleChanged(object sender, EventArgs e)
+		{
+			if (!base.IsHandleCreated || base.DesignMode)
+			{
+				return;
+			}
+			if (InvokeRequired)
+			{
+				BeginInvoke(new MethodInvoker(ApplyMainViewTabMetrics));
+				return;
+			}
+			ApplyMainViewTabMetrics();
 		}
 
 		public void ShowLibrary(ComicLibrary library = null)
