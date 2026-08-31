@@ -223,6 +223,47 @@ Not part of the folder **sidebar**, but visible on Folders tab: `ComicBrowserCon
 
 ---
 
+## Phase 0 Design Decisions
+
+Decisions below resolve all planning unknowns. Rationale references audit findings above.
+
+### D1: DPI awareness mode
+
+- **Decision**: Upgrade manifest to `PerMonitorV2`; add runtime `DpiChanged` handler to call `FormUtility.RefreshDpiScale()` and re-apply Folders sidebar metrics.
+- **Rationale**: System DPI + cached primary-monitor scale causes wrong layout on mixed-DPI and after scale changes (global audit table).
+- **Alternatives considered**: Keep system DPI only (rejected — fails edge cases in spec); full app AutoScaleMode.Font (rejected — high blast radius, Constitution V).
+
+### D2: Folder tree rendering
+
+- **Decision**: Attach existing `NiceTreeSkin` to `FolderTreeView` on Folders tab; set scaled `Indent` and font to `SystemFonts.MessageBoxFont` (or control default after DPI refresh).
+- **Rationale**: Library tree already uses NiceTreeSkin + `ItemHeight = Font.Height + ScaleDpiY(8)`; Folders tree uses native paint with fixed indent (Section 2).
+- **Alternatives considered**: Native tree only with manual ItemHeight (rejected — inconsistent text/selection vs Library); custom new skin (rejected — duplication).
+
+### D3: Favorites tile height
+
+- **Decision**: `ItemTileSize.Height = max(ScaleDpiY(50), fontMetrics * 2 lines + ScaleDpiY(12))` applied on control load, resize, and DPI change — not resize-only.
+- **Rationale**: Two-line `FolderViewItem` text clipped at fixed 50px at 150%+ (Sections 1, 3).
+- **Alternatives considered**: Increase fixed 50→80 without font metrics (rejected — still breaks at 200% or large fonts).
+
+### D4: Workspace split compatibility (FR-008)
+
+- **Decision**: On apply of `ComicExplorerViewSettings`, if `TopBrowserSplit` / `BrowserSplit` / `PreviewSplit` ≤ unscaled defaults (150/150/150) and current `DpiScale.Y > 1.01`, multiply by `DpiScale.Y` once (heuristic for legacy 96-DPI saves). New saves store effective pixel values at save time; optional future: persist `SavedAtDpiPercent` attribute (deferred).
+- **Rationale**: Section 5 — saved workspace reload bypasses ScaleDpi.
+- **Alternatives considered**: Reset all splits on upgrade (rejected — poor UX); always multiply on load (rejected — double-scale on new saves).
+
+### D5: Shared control changes
+
+- **Decision**: Scale `SizableContainer.GripWidth` via `ScaleDpiX(6)` at runtime when grip is shown; verify Library sidebar still acceptable.
+- **Rationale**: Section 4; grip hit-target too small at 200%.
+- **Alternatives considered**: Folders-only subclass (rejected — duplicate container logic).
+
+### D6: Out of scope confirmation
+
+- **Decision**: Comic list pane (`ComicBrowserControl`), full-app manifest side-effects beyond Folders validation, and text rendering engine swap (DirectWrite) deferred to follow-on.
+- **Rationale**: spec.md Out of Scope; P2 text hints optional if time in tasks.
+
+---
+
 ## Ready for planning
 
-This audit satisfies the pre-plan punch list. Next Spec Kit step: **`/speckit-plan`** referencing this file as technical input (implementation details belong in plan/contracts, not `spec.md`).
+Phase 0 complete. See [plan.md](./plan.md), [data-model.md](./data-model.md), [contracts/](./contracts/), [quickstart.md](./quickstart.md).

@@ -3,6 +3,15 @@ alwaysApply: true
 ---
 
 <!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+Active feature: `001-folders-hidpi-layout`
+
+Read for implementation context:
+- Plan: `specs/001-folders-hidpi-layout/plan.md`
+- Spec: `specs/001-folders-hidpi-layout/spec.md`
+- Research/audit: `specs/001-folders-hidpi-layout/research.md`
+- Contracts: `specs/001-folders-hidpi-layout/contracts/`
+- Quickstart: `specs/001-folders-hidpi-layout/quickstart.md`
+
+Stack: .NET Framework 4.8 WinForms; reuse `FormUtility.ScaleDpi`, `NiceTreeSkin`, `ItemView`.
+Branch: `001-folders-hidpi-layout` (fork); upstream PRs from clean `master`.
 <!-- SPECKIT END -->
