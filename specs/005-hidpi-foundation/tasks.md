@@ -126,7 +126,7 @@
 - [ ] T024 Remove any DarkMode/HiDPI unrelated diffs if present on branch (FR-009)
 - [ ] T025 Run **SC-005** CI gates (T008, T036–T037) + operator SC-002/SC-004/SC-006; optional DPI refresh latency spot-check during SC-002; record `validation-results.md`
 - [ ] T026 Operator review and post `pr278-response-draft.md` on PR #278 (**operator approval required**)
-- [ ] T027 Push `005-hidpi-foundation` to `origin`; open upstream PR to **`maforget/dev`** when operator approves
+- [ ] T027 Push `005-hidpi-upstream` to `origin`; open upstream PR to **`maforget/dev`** when operator approves (`005-hidpi-foundation` keeps Spec Kit artifacts on fork only; link docs in PR body)
 
 ---
 

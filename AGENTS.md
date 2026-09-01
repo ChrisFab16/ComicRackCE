@@ -20,7 +20,7 @@ Global agent rules live in [`../AGENTS.md`](../AGENTS.md) (Codesync). This file 
 | `development`   | fork-only           | **Spec Kit + feature prep.** Tooling, specs, experiments; feature branches branch from here or from `upstream/dev` when upstreaming. |
 | `upstream/dev`  | `maforget/dev`      | **HiDPI / integration PR target.** Nightly line; includes manifest PreBuild (`compile_res_file.ps1`). Open upstream PRs here unless maintainer directs otherwise. |
 
-**HiDPI foundation (005+):** Feature branch `005-hidpi-foundation` is based on **`upstream/dev`**, not `master` or old PR #278 layout commits.
+**HiDPI foundation (005+):** Feature branch `005-hidpi-foundation` is based on **`upstream/dev`** (fork Spec Kit + `specs/`). Upstream PRs use **`005-hidpi-upstream`** — same code/tests, **no** `specs/`, `.specify/`, or Spec Kit skills in the diff. Link design docs from the fork branch in the PR body (`pr-upstream-draft.md`).
 
 ```bash
 # Sync stable baseline
@@ -31,6 +31,9 @@ git merge --ff-only upstream/master
 # HiDPI / upstream integration work
 git fetch upstream
 git checkout -B 005-hidpi-foundation upstream/dev
+
+# Upstream PR (code only — no specs/)
+git checkout 005-hidpi-upstream   # push this branch to maforget/dev PR
 
 # Spec Kit artifact prep (fork-only tooling)
 git checkout development

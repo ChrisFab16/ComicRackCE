@@ -1,7 +1,8 @@
 # Upstream PR draft — HiDPI foundation
 
 **Do not open without operator review.**  
-**Target:** `maforget/dev` ← `ChrisFab16/005-hidpi-foundation` (or my fork branch name)  
+**Target:** `maforget/dev` ← `ChrisFab16/005-hidpi-upstream` (code + tests only; **no** `specs/` in upstream diff)  
+**Fork tracking branch:** `005-hidpi-foundation` (Spec Kit artifacts stay on fork only)  
 **Related:** Closes nothing; supersedes approach in #278. Tracks #118 long-term.
 
 ---
@@ -20,9 +21,9 @@ This PR is a **foundation-only** HiDPI change set, based on current `dev` and sh
 
 Goal: make the process genuinely **PerMonitorV2-aware**, refresh DPI per window, and scale library display **without rewriting** persisted `ItemViewConfig`—before any follow-up layout PRs.
 
-### Design & validation docs (in this PR)
+### Design & validation docs (fork only — linked, not in upstream diff)
 
-Spec Kit artifacts on branch `005-hidpi-foundation` ([`ChrisFab16/ComicRackCE`](https://github.com/ChrisFab16/ComicRackCE)):
+Spec Kit artifacts live on my fork branch **`005-hidpi-foundation`** only. They are **not** included in the upstream PR file list; use these links for design context and validation notes:
 
 | Doc | Link |
 |-----|------|
@@ -36,7 +37,7 @@ Spec Kit artifacts on branch `005-hidpi-foundation` ([`ChrisFab16/ComicRackCE`](
 | Operator quickstart | [quickstart.md](https://github.com/ChrisFab16/ComicRackCE/blob/005-hidpi-foundation/specs/005-hidpi-foundation/quickstart.md) |
 | Contracts (manifest, DPI, view config, CI) | [contracts/](https://github.com/ChrisFab16/ComicRackCE/tree/005-hidpi-foundation/specs/005-hidpi-foundation/contracts) |
 
-These are also visible under **Files changed** in this PR.
+Upstream PR branch: [`005-hidpi-upstream`](https://github.com/ChrisFab16/ComicRackCE/tree/005-hidpi-upstream) (product code, tests, CI scripts only).
 
 ### AI assistance disclosure
 
