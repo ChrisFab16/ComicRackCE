@@ -65,4 +65,8 @@ From upstream README:
 
 ## Project-specific lessons
 
-_(Add durable ComicRackCE-only lessons here after `/failure-review`; cross-repo lessons go to Codesync `AGENTS.md`.)_
+### Plugin HiDPI forks (IronPython / WinForms)
+
+- HiDPI layout fixes in external plugins must **audit every page** with absolute `Location`/`Size` coordinates (Options, Rules, Empty values—not only the tab in the first screenshot). Use chained `layout_row` or equivalent after shell scale. (2026-09-01)
+- IronPython WinForms: **`Control.CreateGraphics()` requires an instance**; use `owner.CreateGraphics()` or `Graphics.FromHwnd(IntPtr.Zero)`. Smoke-test plugin config dialogs in ComicRack before handing off to operator. (2026-09-01)
+- Installing a plugin fork: **one Scripts subfolder only**; verify with `Package.ini` version tag; remove stale/duplicate folders before copy. (2026-09-01)
