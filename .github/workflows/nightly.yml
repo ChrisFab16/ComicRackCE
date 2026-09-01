@@ -39,6 +39,12 @@ jobs:
     - name: Build solution
       run: msbuild ComicRack\ComicRack.csproj -t:rebuild -property:Configuration=Release
 
+    - name: Verify embedded HiDPI manifest (SC-001)
+      run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-embedded-manifest.ps1 -ExePath ComicRack/bin/Release/net48/ComicRack.exe
+
+    - name: Run HiDPI foundation tests (SC-003)
+      run: msbuild ComicRack.Tests\ComicRack.Tests.csproj /t:Restore,Build /property:Configuration=Release /property:LangVersion=13.0 && dotnet test ComicRack.Tests\ComicRack.Tests.csproj -c Release --no-build
+
     - name: Package Files
       run: powershell Compress-Archive -Path 'ComicRack\bin\Release\net48\*' -DestinationPath 'ComicRackCE_nightly.zip' -Force
 

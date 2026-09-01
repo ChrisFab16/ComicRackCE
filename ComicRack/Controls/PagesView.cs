@@ -511,6 +511,18 @@ namespace cYo.Projects.ComicRack.Viewer.Controls
 			}
 		}
 
+		public void SetViewConfigWithDisplayScale(ItemViewConfig value)
+		{
+			if (value == null)
+			{
+				return;
+			}
+			int itemRowHeight = itemView.ItemRowHeight;
+			itemView.ViewConfig = value;
+			ItemViewConfigScaling.ApplyLogicalDisplaySizes(value, SetItemSize);
+			itemView.ItemRowHeight = itemRowHeight;
+		}
+
 		public void CopyPage()
 		{
 			using (new WaitCursor())

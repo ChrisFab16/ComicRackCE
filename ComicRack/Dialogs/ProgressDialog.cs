@@ -14,6 +14,8 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
 		public ProgressDialog()
 		{
 			LocalizeUtility.UpdateRightToLeft(this);
+			AutoScaleMode = AutoScaleMode.Dpi;
+			AutoScaleDimensions = new SizeF(96F, 96F);
 			InitializeComponent();
 			LocalizeUtility.Localize(this, null);
 		}

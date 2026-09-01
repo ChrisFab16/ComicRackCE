@@ -731,15 +731,20 @@ namespace cYo.Projects.ComicRack.Viewer
 		{
 			LocalizeUtility.UpdateRightToLeft(this);
 			InitializeComponent();
+			FormUtility.RefreshDpiScale(this);
 			base.Size = base.Size.ScaleDpi();
+			FormUtility.DpiScaleChanged += MainForm_DpiScaleChanged;
 			statusStrip.Height = (int)tsText.Font.GetHeight() + FormUtility.ScaleDpiY(8);
 			SystemEvents.DisplaySettingsChanging += delegate
 			{
 				StoreWorkspace();
 			};
+			// Coarse fallback when WM_DPICHANGED is not raised (e.g. display scale change without move).
 			SystemEvents.DisplaySettingsChanged += delegate
 			{
+				FormUtility.RefreshDpiScale(this);
 				SetWorkspaceDisplayOptions(Program.Settings.CurrentWorkspace);
+				RefreshBrowserDisplayItemSizes();
 			};
 			if (Program.ExtendedSettings.DisableFoldersView)
 			{
@@ -4571,6 +4576,31 @@ namespace cYo.Projects.ComicRack.Viewer
 				else if (qr.HasFlag(QuestionResult.Ok))
 					Program.StartDocument(NightlyDownloadLinkEXE);
 			}
+		}
+
+		private void MainForm_DpiScaleChanged(object sender, DpiScaleChangedEventArgs e)
+		{
+			if (e.Source == null || e.Source == this)
+			{
+				SetWorkspaceDisplayOptions(Program.Settings.CurrentWorkspace);
+				RefreshBrowserDisplayItemSizes();
+			}
+		}
+
+		private void RefreshBrowserDisplayItemSizes()
+		{
+			foreach (IItemSize service in this.FindServices<IItemSize>())
+			{
+				if (service is ComicBrowserControl browser)
+				{
+					browser.RefreshDisplayItemSizeForDpi();
+				}
+				else if (service is ComicPagesView pagesView)
+				{
+					pagesView.RefreshDisplayItemSizeForDpi();
+				}
+			}
+			OnUpdateGui();
 		}
 	}
 }

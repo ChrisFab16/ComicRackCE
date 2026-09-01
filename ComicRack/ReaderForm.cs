@@ -41,6 +41,15 @@ namespace cYo.Projects.ComicRack.Viewer
 			base.Icon = Resources.ComicRackAppSmall;
 			ComicDisplay = comicDisplay;
 			LocalizeUtility.Localize(this, components);
+			FormUtility.DpiScaleChanged += ReaderForm_DpiScaleChanged;
+		}
+
+		private void ReaderForm_DpiScaleChanged(object sender, DpiScaleChangedEventArgs e)
+		{
+			if (e.Source == null || e.Source == this)
+			{
+				ComicDisplay?.RefreshDisplay();
+			}
 		}
 
 
@@ -64,6 +73,7 @@ namespace cYo.Projects.ComicRack.Viewer
 			}
 			if (!e.Cancel)
 			{
+				FormUtility.DpiScaleChanged -= ReaderForm_DpiScaleChanged;
 				base.OnFormClosing(e);
 			}
 		}

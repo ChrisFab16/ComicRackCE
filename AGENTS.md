@@ -40,8 +40,11 @@ git checkout development
 
 Spec Kit is initialized on `development` with Cursor Agent integration and the **git extension**.
 
-- **Workflow:** `/speckit-constitution` → `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → **`/speckit-analyze`** → `/speckit-implement`
-- **Analyze gate:** mandatory after tasks and before implement (global rules §24)
+- **Workflow:** `/speckit-constitution` → `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → **`/speckit-analyze`** → **`/speckit-checklist-pre-implement`** → `/speckit-implement` → **`/universal-code-review`** → `/speckit-converge` (if review finds gaps)
+- **Analyze gate:** mandatory after tasks and before implement (global rules §24). Checks **artifact consistency only** — not call sites, init order, or code correctness.
+- **Pre-implement checklist gate:** mandatory after analyze PASS and before feature code (`/speckit-checklist-pre-implement`). Template: `specs/_templates/checklist-pre-implement.md`; example (retrospective): `specs/005-hidpi-foundation/checklist-pre-implement.md`. Blocks implement until failure modes, call-site audit, test design, and CI proof plan are done or operator-waived.
+- **Code review gate:** `/universal-code-review` after implement, before marking tasks complete or upstream PR. Analyze and checklist do **not** replace this.
+- **Converge:** `/speckit-converge` after code review when P1+ findings need new tasks (e.g. 005 Phase 7 T039–T047).
 - **Bugfixes / new scope:** need specs — no silent hotfixes on `master`
 - **Feature branches:** git extension creates `NNN-short-name` branches from current branch (stay on `development` when starting features)
 - **Auto-commit:** enabled for `after_*` artifact steps in `.specify/extensions/git/git-config.yml` (constitution, spec, plan, tasks, analyze, checklist). `after_implement` stays off — enable when you want incremental code commits.
@@ -66,8 +69,10 @@ Cross-repo rules: Codesync `AGENTS.md` §31 (verify binary), §33 (CI vs operato
 | -------- | ---------- | ------------------- |
 | Embedded `PerMonitorV2` (SC-001) | **CI required** | Post-build script on EXE + `.res`; fail build/CI if stale |
 | Workspace config not mutated (SC-003) | **CI required** | Unit tests on load path / `ItemViewConfig` semantics |
+| CI rollup (SC-005) | **CI required** | SC-001 + SC-003 both pass |
 | Cross-monitor DPI (SC-002) | **Operator** | Dual-monitor drag; optional later host test on single scale |
-| Layout legibility smoke (SC-005) | **Operator** | Subjective @ 150%; not a CI substitute for SC-001 |
+| Pilot dialog (SC-004) | **Operator** | Optional @ 125%/150% |
+| Layout legibility smoke (SC-006) | **Operator** | Subjective @ 150%; not a CI substitute for SC-001 |
 
 **Implementation order:** (1) `scripts/verify-embedded-manifest.ps1` + MSBuild/CI step after `ComicRack.csproj` build — `nightly.yml` already uses Windows + MSVC; (2) add `ComicRack.Tests` (xUnit/NUnit, `net48`) for pure logic — repo has **no test project today**; extract testable helpers from WinForms code rather than full UI automation; (3) defer FlaUI/WinAppDriver unless visual regression is explicitly scoped.
 
@@ -105,4 +110,14 @@ From upstream README:
 
 - Automate **SC-001** via post-build manifest extraction (`mt -inputresource:ComicRack.exe;#1`) and `strings` on `myressources.res`; wire into CI — see **Validation automation** section above (2026-09-01).
 - Automate **SC-003** with unit tests: load fixture workspace XML, assert thumb/tile heights unchanged; assert display scaling uses `GetItemSize`/`SetItemSize` path only (2026-09-01).
-- Do **not** replace SC-001/SC-003 CI gates with operator “looks fine at 150%” (2026-09-01).
+- Do **not** replace SC-001/SC-003 CI gates with operator “looks fine at 150%” — operator smoke is **SC-006**, not SC-005 (2026-09-01).
+
+### Spec Kit gates vs review types (2026-09-01)
+
+| Gate | Tool / artifact | Proves | Does not prove |
+|------|-----------------|--------|----------------|
+| Analyze | `/speckit-analyze`, `analyze-report.md` | FR/SC have tasks; constitution; no doc contradictions | Code works; all call sites; EXE embeds manifest |
+| Pre-implement | `checklist-pre-implement.md`, Phase 0 tasks | Failure modes have detections; bypass paths listed; tests designed | Runtime on real hardware |
+| Implement | `/speckit-implement`, tasks checked | Code matches tasks | No missed edge cases |
+| Code review | `/universal-code-review` | Contract fulfillment, persistence, init order | Operator aesthetics |
+| Operator | `validation-results.md`, quickstart | SC-002/004/006 on Windows | — |

@@ -66,11 +66,11 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 		{
 			get
 			{
-				return pagesView.ViewConfig;
+				return GetLogicalViewConfig();
 			}
 			set
 			{
-				pagesView.ViewConfig = value;
+				SetViewConfigWithDisplayScale(value);
 			}
 		}
 
@@ -217,6 +217,27 @@ namespace cYo.Projects.ComicRack.Viewer.Views
 		public virtual void SetItemSize(int value)
 		{
 			pagesView.SetItemSize(value);
+		}
+
+		public void RefreshDisplayItemSizeForDpi()
+		{
+			ApplyDisplayItemSize(GetLogicalViewConfig());
+		}
+
+		private void SetViewConfigWithDisplayScale(ItemViewConfig value)
+		{
+			pagesView.ViewConfig = value;
+			ApplyDisplayItemSize(value);
+		}
+
+		private ItemViewConfig GetLogicalViewConfig()
+		{
+			return ItemViewConfigScaling.ToLogical(pagesView.ViewConfig);
+		}
+
+		private void ApplyDisplayItemSize(ItemViewConfig logical)
+		{
+			ItemViewConfigScaling.ApplyLogicalDisplaySizes(logical, SetItemSize);
 		}
 
 		public void SetWorkspace(DisplayWorkspace ws)

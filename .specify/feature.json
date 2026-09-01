@@ -1,0 +1,6 @@
+{
+  "feature": "005-hidpi-foundation",
+  "path": "specs/005-hidpi-foundation",
+  "branch": "005-hidpi-foundation",
+  "base": "upstream/dev"
+}

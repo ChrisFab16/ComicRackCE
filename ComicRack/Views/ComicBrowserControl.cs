@@ -345,11 +345,11 @@ namespace cYo.Projects.ComicRack.Viewer.Views
         {
             get
             {
-                return itemView.ViewConfig;
+                return GetLogicalViewConfig();
             }
             set
             {
-                itemView.ViewConfig = value;
+                SetItemViewConfig(value);
             }
         }
 
@@ -1847,7 +1847,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
                         itemView.StackDisplayEnabled = true;
                         if (preStackConfig != null)
                         {
-                            itemView.ViewConfig = preStackConfig;
+                            SetItemViewConfig(preStackConfig);
                         }
                         stackFilter = null;
                         FillBookList();
@@ -1894,7 +1894,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
                     stackFilter = new StackMatcher(itemView.ItemStacker, stackCaption, hashSet);
                     if (storeConfig)
                     {
-                        preStackConfig = itemView.ViewConfig;
+                        preStackConfig = GetLogicalViewConfig();
                         preStackScrollPosition = itemView.ScrollPosition;
                         preStackFocusedId = GetFocusedId();
                     }
@@ -1906,7 +1906,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
                     ItemViewConfig stackViewConfig = stacksConfig.GetStackViewConfig(Program.Settings.CommonListStackLayout ? BookList.Name : stackCaption);
                     if (stackViewConfig != null)
                     {
-                        itemView.ViewConfig = stackViewConfig;
+                        SetItemViewConfig(stackViewConfig);
                     }
                     itemView.StackDisplayEnabled = false;
                     FillBookList();
@@ -1929,7 +1929,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
             if (displayListConfig != null && displayListConfig.Display != null)
             {
                 stacksConfig = CloneUtility.Clone(displayListConfig.Display.StackConfig);
-                itemView.ViewConfig = displayListConfig.Display.View;
+                SetItemViewConfig(displayListConfig.Display.View);
                 ThumbnailConfig = displayListConfig.Display.Thumbnail;
                 if (Program.Settings.LocalQuickSearch)
                 {
@@ -2582,6 +2582,27 @@ namespace cYo.Projects.ComicRack.Viewer.Views
             }
         }
 
+        public void RefreshDisplayItemSizeForDpi()
+        {
+            ApplyDisplayItemSize(GetLogicalViewConfig());
+        }
+
+        private void SetItemViewConfig(ItemViewConfig value)
+        {
+            itemView.ViewConfig = value;
+            ApplyDisplayItemSize(value);
+        }
+
+        private ItemViewConfig GetLogicalViewConfig()
+        {
+            return ItemViewConfigScaling.ToLogical(itemView.ViewConfig);
+        }
+
+        private void ApplyDisplayItemSize(ItemViewConfig logical)
+        {
+            ItemViewConfigScaling.ApplyLogicalDisplaySizes(logical, SetItemSize);
+        }
+
         public Guid GetBookListId()
         {
             if (BookList != null)
@@ -2712,7 +2733,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
                     DisplayListConfig displayListConfig = dataObject.GetData(typeof(DisplayListConfig)) as DisplayListConfig;
                     if (displayListConfig != null)
                     {
-                        itemView.ViewConfig = displayListConfig.View;
+                        SetItemViewConfig(displayListConfig.View);
                         ThumbnailConfig = displayListConfig.Thumbnail;
                         stacksConfig = displayListConfig.StackConfig;
                         FillBookList();
@@ -3375,7 +3396,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
                 }
                 else
                 {
-                    displayListConfig.Display = new DisplayListConfig(itemView.ViewConfig, ThumbnailConfig, null, stacksConfig, backgroundImageSource)
+                    displayListConfig.Display = new DisplayListConfig(GetLogicalViewConfig(), ThumbnailConfig, null, stacksConfig, backgroundImageSource)
                     {
                         ScrollPosition = itemView.ScrollPosition,
                         FocusedComicId = GetFocusedId()
