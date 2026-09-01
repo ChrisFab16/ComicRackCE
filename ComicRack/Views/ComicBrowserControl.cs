@@ -1842,7 +1842,7 @@ namespace cYo.Projects.ComicRack.Viewer.Views
                     {
                         if (stacksConfig != null)
                         {
-                            stacksConfig.SetStackViewConfig(Program.Settings.CommonListStackLayout ? BookList.Name : currentStackName, itemView.ViewConfig);
+                            stacksConfig.SetStackViewConfig(Program.Settings.CommonListStackLayout ? BookList.Name : currentStackName, GetLogicalViewConfig());
                         }
                         itemView.StackDisplayEnabled = true;
                         if (preStackConfig != null)

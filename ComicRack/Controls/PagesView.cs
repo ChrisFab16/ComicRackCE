@@ -517,10 +517,8 @@ namespace cYo.Projects.ComicRack.Viewer.Controls
 			{
 				return;
 			}
-			int itemRowHeight = itemView.ItemRowHeight;
 			itemView.ViewConfig = value;
 			ItemViewConfigScaling.ApplyLogicalDisplaySizes(value, SetItemSize);
-			itemView.ItemRowHeight = itemRowHeight;
 		}
 
 		public void CopyPage()

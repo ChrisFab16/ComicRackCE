@@ -27,7 +27,8 @@
 
 | Pattern | Command / locations | Must go through | Bypass risk | Done |
 |---------|---------------------|-----------------|-------------|------|
-| `ViewConfig` assign | `rg 'ViewConfig\s*=' ComicRack/` | `ComicBrowserControl` / `ComicPagesView` scaling wrapper | **ComicBookDialog** → `pagesView.ViewConfig` direct | [ ] **Open (P2)** |
+| `ViewConfig` assign | `rg 'ViewConfig\s*=' ComicRack/` | scaling wrapper | **ComicBookDialog** → fixed T049 | [x] |
+| Stack persist | `CloseStack` / `SetStackViewConfig` | `GetLogicalViewConfig()` | was raw `itemView.ViewConfig` | [x] T052 |
 | `ItemViewConfig` persist | `UpdateViewConfig`, workspace save | `GetLogicalViewConfig()` (unscale) | direct `itemView.ViewConfig` in save path | [x] Retro T041 |
 | DPI refresh subscribers | `rg 'DpiScaleChanged'` | filter by `e.Source`; unsubscribe on close | MainForm never unsubscribes (app lifetime OK) | [x] Retro T043 |
 | `ScaleDpi` in ctor | MainForm, ComicBrowserControl init | after `RefreshDpiScale(owner)` | child init **before** MainForm `RefreshDpiScale` | [ ] **Hypothesis — operator SC-006** |

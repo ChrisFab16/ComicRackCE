@@ -57,5 +57,20 @@ namespace ComicRack.Tests.HiDpi
 			Assert.Equal(logicalThumb, display.ThumbnailSize.Height);
 			Assert.Equal(logicalRow, display.ItemRowHeight);
 		}
+
+		[Fact]
+		public void ApplyLogicalDisplaySizes_DetailMode_SetsScaledRowHeight()
+		{
+			int captured = 0;
+			var logical = new ItemViewConfig
+			{
+				ItemViewMode = ItemViewMode.Detail,
+				ItemRowHeight = 32
+			};
+
+			ItemViewConfigScaling.ApplyLogicalDisplaySizes(logical, height => captured = height, Scale150);
+
+			Assert.Equal(48, captured);
+		}
 	}
 }

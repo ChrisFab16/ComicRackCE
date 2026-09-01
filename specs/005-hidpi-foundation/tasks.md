@@ -144,6 +144,8 @@
 - [x] T046 [P2] Unit test: `ScaleDpiY` / `UnscaleDpiY` round-trip at cached scale
 - [x] T047 Record local SC-001/SC-005 pass in `validation-results.md` after T008
 - [ ] T038 Update `validation-results.md` with first CI run after push
+- [x] T052 [P1] Stack close: `SetStackViewConfig` uses `GetLogicalViewConfig()` not raw `itemView.ViewConfig`
+- [x] T053 [P1] `PagesView.SetViewConfigWithDisplayScale`: do not restore row height after display apply (Detail mode)
 
 **Checkpoint**: T008 + T047 before operator SC-002/SC-006 sign-off.
 
