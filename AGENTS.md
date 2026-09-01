@@ -58,6 +58,23 @@ Active feature path: `.specify/feature.json` (created by `/speckit-specify`)
 
 Build and test with Visual Studio or `msbuild` against `ComicRack.sln` before claiming compile fixes.
 
+## Validation automation (HiDPI)
+
+Cross-repo rules: Codesync `AGENTS.md` §31 (verify binary), §33 (CI vs operator gates). This section is **ComicRackCE-specific** wiring.
+
+| Scenario | Gate owner | Mechanism (target) |
+| -------- | ---------- | ------------------- |
+| Embedded `PerMonitorV2` (SC-001) | **CI required** | Post-build script on EXE + `.res`; fail build/CI if stale |
+| Workspace config not mutated (SC-003) | **CI required** | Unit tests on load path / `ItemViewConfig` semantics |
+| Cross-monitor DPI (SC-002) | **Operator** | Dual-monitor drag; optional later host test on single scale |
+| Layout legibility smoke (SC-005) | **Operator** | Subjective @ 150%; not a CI substitute for SC-001 |
+
+**Implementation order:** (1) `scripts/verify-embedded-manifest.ps1` + MSBuild/CI step after `ComicRack.csproj` build — `nightly.yml` already uses Windows + MSVC; (2) add `ComicRack.Tests` (xUnit/NUnit, `net48`) for pure logic — repo has **no test project today**; extract testable helpers from WinForms code rather than full UI automation; (3) defer FlaUI/WinAppDriver unless visual regression is explicitly scoped.
+
+**WinForms test constraints:** `[STAThread]` and message-loop tests only where handles are required; prefer testing scaling/normalization functions without launching the full app.
+
+**Marking done:** `validation-results.md` must list CI pass for automated scenarios before operator sign-off on manual ones; do not mark Spec Kit tasks complete on operator UI alone when an automated gate exists.
+
 ## Upstream contribution norms
 
 From upstream README:
@@ -83,3 +100,9 @@ From upstream README:
 - **One PR, one scope:** do not append features 002/003 to an open upstream PR without maintainer OK; upstream prefers small focused PRs (2026-09-01).
 - **Sync before upstreaming:** `git fetch upstream` and check `upstream/dev` for build/manifest fixes already merged upstream before opening HiDPI PRs (2026-09-01).
 - **Co-authored / AI-assisted commits:** same artifact gates as hand-written code — verify embedded manifest and build outputs before operator sign-off or `gh pr create` (2026-09-01).
+
+### HiDPI validation automation (005+)
+
+- Automate **SC-001** via post-build manifest extraction (`mt -inputresource:ComicRack.exe;#1`) and `strings` on `myressources.res`; wire into CI — see **Validation automation** section above (2026-09-01).
+- Automate **SC-003** with unit tests: load fixture workspace XML, assert thumb/tile heights unchanged; assert display scaling uses `GetItemSize`/`SetItemSize` path only (2026-09-01).
+- Do **not** replace SC-001/SC-003 CI gates with operator “looks fine at 150%” (2026-09-01).
