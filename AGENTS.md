@@ -37,6 +37,7 @@ Spec Kit is initialized on `development` with Cursor Agent integration and the *
 
 - **Workflow:** `/speckit-constitution` → `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → **`/speckit-analyze`** → `/speckit-implement`
 - **Analyze gate:** mandatory after tasks and before implement (global rules §24)
+- **Deferred features + external fork:** CE branch still needs plan/tasks/analyze and `validation-results.md` operator sign-off before closure — plugin work in `external/` does not bypass Spec Kit on the CE feature branch. (2026-09-01)
 - **Bugfixes / new scope:** need specs — no silent hotfixes on `master`
 - **Feature branches:** git extension creates `NNN-short-name` branches from current branch (stay on `development` when starting features)
 - **Auto-commit:** enabled for `after_*` artifact steps in `.specify/extensions/git/git-config.yml` (constitution, spec, plan, tasks, analyze, checklist). `after_implement` stays off — enable when you want incremental code commits.
@@ -68,5 +69,7 @@ From upstream README:
 ### Plugin HiDPI forks (IronPython / WinForms)
 
 - HiDPI layout fixes in external plugins must **audit every page** with absolute `Location`/`Size` coordinates (Options, Rules, Empty values—not only the tab in the first screenshot). Use chained `layout_row` or equivalent after shell scale. (2026-09-01)
+- **TabControl tab pages:** use `TabControl.DisplayRectangle` for layout bounds at HiDPI — not design-time `TabPage.ClientSize` (scaled coords vs unscaled clip rect causes bottom/right clipping). (2026-09-01)
+- **Buttons at HiDPI:** set `AutoSize` or scaled `MinimumSize` width so labels (e.g. "Remove") are not truncated; when operator reports "clipped", check **both** vertical overflow and fixed button width. (2026-09-01)
 - IronPython WinForms: **`Control.CreateGraphics()` requires an instance**; use `owner.CreateGraphics()` or `Graphics.FromHwnd(IntPtr.Zero)`. Smoke-test plugin config dialogs in ComicRack before handing off to operator. (2026-09-01)
 - Installing a plugin fork: **one Scripts subfolder only**; verify with `Package.ini` version tag; remove stale/duplicate folders before copy. (2026-09-01)
