@@ -19,6 +19,19 @@ using cYo.Common.Windows.Forms.Theme;
 
 namespace cYo.Common.Windows.Forms
 {
+	public class DpiScaleChangedEventArgs : EventArgs
+	{
+		public Control Source { get; }
+
+		public PointF Scale { get; }
+
+		public DpiScaleChangedEventArgs(Control source, PointF scale)
+		{
+			Source = source;
+			Scale = scale;
+		}
+	}
+
 	public static class FormUtility
 	{
 		private class GroupHeaderComparer : IComparer
@@ -62,7 +75,12 @@ namespace cYo.Common.Windows.Forms
 
 		private const int LOGPIXELSY = 90;
 
+		// Process-wide cache updated by RefreshDpiScale. Per-monitor correctness requires passing
+		// the owning Control to GetDpiScale/RefreshDpiScale; multi-top-level-window scenarios
+		// may use stale cache until each form receives WM_DPICHANGED (cross-monitor drag is manual QA).
 		private static PointF dpiScale = PointF.Empty;
+
+		public static event EventHandler<DpiScaleChangedEventArgs> DpiScaleChanged;
 
 		public static Dictionary<string, Rectangle> FormPositions
 		{
@@ -84,18 +102,51 @@ namespace cYo.Common.Windows.Forms
 				{
 					return dpiScale;
 				}
-				if (!IsProcessDPIAware())
-				{
-					dpiScale = new PointF(1f, 1f);
-				}
-				else
-				{
-					IntPtr dC = GetDC(IntPtr.Zero);
-					Size size = new Size(GetDeviceCaps(dC, LOGPIXELSX), GetDeviceCaps(dC, LOGPIXELSY));
-					dpiScale = new PointF((float)size.Width / 96f, (float)size.Height / 96f);
-				}
-				return dpiScale;
+				return GetDpiScale(null);
 			}
+		}
+
+		public static PointF GetDpiScale(Control owner)
+		{
+			if (owner != null && owner.IsHandleCreated)
+			{
+				uint dpi = GetDpiForWindow(owner.Handle);
+				if (dpi != 0)
+				{
+					float scale = dpi / 96f;
+					return new PointF(scale, scale);
+				}
+			}
+			if (owner != null)
+			{
+				using (Graphics graphics = owner.CreateGraphics())
+				{
+					return new PointF(graphics.DpiX / 96f, graphics.DpiY / 96f);
+				}
+			}
+			if (!IsProcessDPIAware())
+			{
+				return new PointF(1f, 1f);
+			}
+			IntPtr dC = GetDC(IntPtr.Zero);
+			try
+			{
+				Size size = new Size(GetDeviceCaps(dC, LOGPIXELSX), GetDeviceCaps(dC, LOGPIXELSY));
+				return new PointF((float)size.Width / 96f, (float)size.Height / 96f);
+			}
+			finally
+			{
+				ReleaseDC(IntPtr.Zero, dC);
+			}
+		}
+
+		public static PointF RefreshDpiScale(Control source = null)
+		{
+			dpiScale = PointF.Empty;
+			PointF scale = GetDpiScale(source);
+			dpiScale = scale;
+			DpiScaleChanged?.Invoke(source, new DpiScaleChangedEventArgs(source, scale));
+			return scale;
 		}
 
 		public static object FindActiveService(this Control root, Type service)
@@ -799,11 +850,17 @@ namespace cYo.Common.Windows.Forms
 		[DllImport("user32.dll")]
 		private static extern bool IsProcessDPIAware();
 
+		[DllImport("user32.dll")]
+		private static extern uint GetDpiForWindow(IntPtr hwnd);
+
 		[DllImport("gdi32.dll")]
 		private static extern int GetDeviceCaps(IntPtr hdc, int nIndex);
 
 		[DllImport("user32.dll")]
 		private static extern IntPtr GetDC(IntPtr hWnd);
+
+		[DllImport("user32.dll")]
+		private static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
 
 		public static Size ScaleDpi(this Size size)
 		{
@@ -851,6 +908,28 @@ namespace cYo.Common.Windows.Forms
 		public static int ScaleDpiY(int v)
 		{
 			return (int)((float)v * DpiScale.Y);
+		}
+
+		public static float UnscaleDpiY(float v)
+		{
+			float scale = DpiScale.Y;
+			return scale > 0f ? v / scale : v;
+		}
+
+		public static int UnscaleDpiY(int v)
+		{
+			return (int)UnscaleDpiY((float)v);
+		}
+
+		public static int UnscaleDpiX(int v)
+		{
+			float scale = DpiScale.X;
+			return scale > 0f ? (int)((float)v / scale) : v;
+		}
+
+		public static Size UnscaleDpi(this Size size)
+		{
+			return new Size(UnscaleDpiX(size.Width), UnscaleDpiY(size.Height));
 		}
 
 		public static Bitmap ScaleDpi(this Bitmap bitmap)

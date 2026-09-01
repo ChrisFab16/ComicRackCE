@@ -46,6 +46,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\release.yml = .github\workflows\release.yml
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ComicRack.Tests", "ComicRack.Tests\ComicRack.Tests.csproj", "{98A36C98-58DF-44C7-93C5-EE910E5D2B58}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -110,6 +112,14 @@ Global
 		{A775E7F2-2D32-4F25-BF9B-F1C9EE5F5AF2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A775E7F2-2D32-4F25-BF9B-F1C9EE5F5AF2}.Release|x64.ActiveCfg = Release|Any CPU
 		{A775E7F2-2D32-4F25-BF9B-F1C9EE5F5AF2}.Release|x64.Build.0 = Release|Any CPU
+		{98A36C98-58DF-44C7-93C5-EE910E5D2B58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98A36C98-58DF-44C7-93C5-EE910E5D2B58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98A36C98-58DF-44C7-93C5-EE910E5D2B58}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{98A36C98-58DF-44C7-93C5-EE910E5D2B58}.Debug|x64.Build.0 = Debug|Any CPU
+		{98A36C98-58DF-44C7-93C5-EE910E5D2B58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98A36C98-58DF-44C7-93C5-EE910E5D2B58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98A36C98-58DF-44C7-93C5-EE910E5D2B58}.Release|x64.ActiveCfg = Release|Any CPU
+		{98A36C98-58DF-44C7-93C5-EE910E5D2B58}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

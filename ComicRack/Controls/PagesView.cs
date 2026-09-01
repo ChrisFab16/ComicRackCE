@@ -511,6 +511,11 @@ namespace cYo.Projects.ComicRack.Viewer.Controls
 			}
 		}
 
+		public void SetViewConfigWithDisplayScale(ItemViewConfig value)
+		{
+			ViewConfig = value;
+		}
+
 		public void CopyPage()
 		{
 			using (new WaitCursor())

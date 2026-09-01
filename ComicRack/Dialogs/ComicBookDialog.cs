@@ -140,7 +140,7 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
             ComicListField.TranslateColumns(pagesView.ItemView.Columns);
             if (PagesConfig != null)
             {
-                pagesView.ViewConfig = PagesConfig;
+                pagesView.SetViewConfigWithDisplayScale(PagesConfig);
             }
             new ComboBoxSkinner(cbImprint, ComicBook.PublisherIcons) { MaxHeightScale = 2 };
             new ComboBoxSkinner(cbPublisher, ComicBook.PublisherIcons) { MaxHeightScale = 2};

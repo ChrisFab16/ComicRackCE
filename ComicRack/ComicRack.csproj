@@ -187,4 +187,7 @@
     <Target Name="CompressFolders" AfterTargets="PostBuild">
         <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(SolutionDir)CompressFolders.ps1&quot; -BaseDirectory &quot;$(OutDir)&quot;" />
     </Target>
+    <Target Name="VerifyEmbeddedManifest" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'">
+        <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(SolutionDir)scripts\verify-embedded-manifest.ps1&quot; -ExePath &quot;$(TargetPath)&quot; -ManifestPath &quot;$(ProjectDir)app.manifest&quot; -ResPath &quot;$(ProjectDir)myressources.res&quot;" />
+    </Target>
 </Project>
