@@ -37,3 +37,9 @@ Zip a folder containing `ui/dist/index.html` + `Package.ini` + `plugin.json` as 
 ## Limitation
 
 Changing IronPython `.py` hooks still requires restarting ComicRack.
+
+## Preferences visibility
+
+- **Packages** list only shows folders under `%AppData%\cYo\ComicRack Community Edition\Scripts\`.
+- Built-in sample also ships next to the EXE under `Scripts\WebConfigureSample\` and appears in the **scripts/commands** list (e.g. “Web Configure Sample”) after a restart when running that build.
+- For Packages-list visibility during testing, copy the sample folder into AppData `Scripts\`.

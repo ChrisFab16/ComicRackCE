@@ -1,6 +1,6 @@
 # Validation Results: 006-plugin-webview-host
 
-**Branch**: `006-plugin-webview-host`  
+**Branch**: `006-plugin-webview-host` (merged to `development`)  
 **Date**: 2026-09-23
 
 ## Automated
@@ -16,4 +16,6 @@
 
 | Gate | Result | Notes |
 |------|--------|-------|
-| SC-003 Sample Configure WebView2 | pending | Requires WebView2 runtime; see [quickstart.md](./quickstart.md) |
+| SC-003 Sample Configure WebView2 | **PASS** | Operator: Debug EXE; sample installed under AppData `Scripts/WebConfigureSample`; Configure opens SPA and Host API works |
+
+**Note:** Packages list only shows AppData installs. Built-in sample under EXE `Scripts/` also loads into the scripts/commands list after restart; copy to AppData makes it visible under Packages.
