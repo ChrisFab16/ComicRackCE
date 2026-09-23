@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://comicrack.local/schemas/host-api-v1.schema.json",
+  "title": "ComicRack Plugin Host API v1 (JSON-RPC over WebView2)",
+  "description": "Request/response envelope for SPA plugin UI talking to the ComicRack host. Transport: CoreWebView2 WebMessage as UTF-8 JSON.",
+  "oneOf": [
+    { "$ref": "#/$defs/request" },
+    { "$ref": "#/$defs/response" },
+    { "$ref": "#/$defs/event" }
+  ],
+  "$defs": {
+    "request": {
+      "type": "object",
+      "required": ["jsonrpc", "id", "method"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "type": ["string", "number"] },
+        "method": {
+          "type": "string",
+          "enum": [
+            "host.getInfo",
+            "host.getTheme",
+            "host.getSelectedBooks",
+            "host.getLibraryBooks",
+            "host.askQuestion",
+            "host.showComicInfo",
+            "host.config.get",
+            "host.config.set",
+            "host.ui.reload",
+            "host.ui.close"
+          ]
+        },
+        "params": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "response": {
+      "type": "object",
+      "required": ["jsonrpc", "id"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "id": { "type": ["string", "number"] },
+        "result": true,
+        "error": {
+          "type": "object",
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "type": "integer" },
+            "message": { "type": "string" },
+            "data": true
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "event": {
+      "type": "object",
+      "required": ["jsonrpc", "method"],
+      "properties": {
+        "jsonrpc": { "const": "2.0" },
+        "method": {
+          "type": "string",
+          "enum": ["host.event.themeChanged", "host.event.selectionChanged"]
+        },
+        "params": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "bookSummary": {
+      "type": "object",
+      "required": ["id", "caption"],
+      "properties": {
+        "id": { "type": "string" },
+        "caption": { "type": "string" },
+        "series": { "type": "string" },
+        "number": { "type": "string" },
+        "volume": { "type": ["integer", "null"] },
+        "year": { "type": ["integer", "null"] },
+        "filePath": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "hostInfo": {
+      "type": "object",
+      "required": ["productVersion", "apiVersion", "pluginId", "pluginVersion", "commandPath"],
+      "properties": {
+        "productVersion": { "type": "string" },
+        "apiVersion": { "type": "integer", "const": 1 },
+        "pluginId": { "type": "string" },
+        "pluginVersion": { "type": "string" },
+        "commandPath": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "themeInfo": {
+      "type": "object",
+      "properties": {
+        "isDark": { "type": "boolean" },
+        "backColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "foreColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

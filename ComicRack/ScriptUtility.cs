@@ -14,6 +14,7 @@ using cYo.Projects.ComicRack.Plugins;
 using cYo.Projects.ComicRack.Plugins.Automation;
 using cYo.Projects.ComicRack.Plugins.Controls;
 using cYo.Projects.ComicRack.Plugins.Theme;
+using cYo.Projects.ComicRack.Plugins.WebView;
 using cYo.Projects.ComicRack.Viewer.Dialogs;
 using cYo.Common.Windows.Forms.Theme;
 
@@ -75,6 +76,11 @@ namespace cYo.Projects.ComicRack.Viewer
 				return false;
 
 			PluginEnvironment env = new PluginEnvironment(mainWindow, app, browser, comicDisplay, config, openBooks, ThemePlugin.Default);
+			WebViewPluginHost.SelectedBooksProvider = () =>
+			{
+				IGetBookList getBookList = FormUtility.FindActiveService<IGetBookList>();
+				return getBookList?.GetBookList(ComicBookFilterType.Selected) ?? Enumerable.Empty<ComicBook>();
+			};
 			Scripts.Initialize(env, Program.Paths.ScriptPath);
 			Scripts.Initialize(env, Program.Paths.ScriptPathSecondary);
 			Scripts.CommandStates = Program.Settings.PluginsStates;

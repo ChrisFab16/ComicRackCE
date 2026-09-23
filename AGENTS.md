@@ -65,4 +65,13 @@ From upstream README:
 
 ## Project-specific lessons
 
+### Plugin SPA host (006)
+
+- **Phase 1:** IronPython keeps logic hooks; Configure UI can be a WebView2 SPA via `plugin.json` `ui.configure` + `ComicRack.ShowWebConfigure()`.
+- Host bridge is **JSON-RPC over WebView2 messages** (`specs/006-plugin-webview-host/contracts/`); prefer messages over `AddHostObjectToScript` for versioning.
+- `PackageManager.UnzipFile` must preserve nested paths (SPA `ui/dist`); zip-slip guarded.
+- Sample: `ComicRack/Output/Scripts/WebConfigureSample` + source `samples/webview-configure-sample`.
+- Changing `.py` hooks still requires app restart; SPA asset hot-reload does not.
+- Upstream PRs: product code/tests only — exclude `specs/` and fork `AGENTS.md` (same hygiene as HiDPI).
+
 _(Add durable ComicRackCE-only lessons here after `/failure-review`; cross-repo lessons go to Codesync `AGENTS.md`.)_

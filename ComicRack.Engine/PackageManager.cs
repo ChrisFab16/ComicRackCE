@@ -132,13 +132,33 @@ namespace cYo.Projects.ComicRack.Engine
 			public static void UnzipFile(string packagePath, string targetPath)
 			{
 				Directory.CreateDirectory(targetPath);
+				string fullTarget = Path.GetFullPath(targetPath);
+				if (!fullTarget.EndsWith(Path.DirectorySeparatorChar.ToString()) && !fullTarget.EndsWith(Path.AltDirectorySeparatorChar.ToString()))
+				{
+					fullTarget += Path.DirectorySeparatorChar;
+				}
 				using (ZipFile zipFile = new ZipFile(packagePath))
 				{
 					foreach (ZipEntry item in from ZipEntry ze in zipFile
 						where ze.IsFile
 						select ze)
 					{
-						using (FileStream destination = File.Create(Path.Combine(targetPath, Path.GetFileName(item.Name))))
+						string relative = item.Name.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+						if (string.IsNullOrWhiteSpace(relative) || relative.Contains(":" + Path.DirectorySeparatorChar))
+						{
+							continue;
+						}
+						string destinationPath = Path.GetFullPath(Path.Combine(targetPath, relative));
+						if (!destinationPath.StartsWith(fullTarget, StringComparison.OrdinalIgnoreCase))
+						{
+							continue;
+						}
+						string destinationDir = Path.GetDirectoryName(destinationPath);
+						if (!string.IsNullOrEmpty(destinationDir))
+						{
+							Directory.CreateDirectory(destinationDir);
+						}
+						using (FileStream destination = File.Create(destinationPath))
 						{
 							using (Stream stream = zipFile.GetInputStream(item))
 							{

@@ -1,3 +1,6 @@
 {
-  "feature_directory": "specs/003-library-hidpi-layout"
+  "feature": "006-plugin-webview-host",
+  "feature_directory": "specs/006-plugin-webview-host",
+  "branch": "006-plugin-webview-host",
+  "base": "development"
 }
