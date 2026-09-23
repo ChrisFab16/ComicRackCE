@@ -4,7 +4,7 @@
 |------|--------|-------|
 | SC-001 HtmlInfoContent tests | **PASS** | unit |
 | SC-003 No WebBrowser in panel control | **PASS** | WebView2 only |
-| SC-002 Operator Sample ComicInfoHtml | pending | Enable Dummy Book Info HTML in Sample.py; open info sidebar |
+| SC-002 Operator Sample ComicInfoHtml | **PASS** | Operator: View → Info Panel; Dummy Book Info HTML tab shows album title |
 
 ## Quick operator check
 

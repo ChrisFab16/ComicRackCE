@@ -5,5 +5,5 @@
 - [x] T011 WebView2 `HtmlComicPageControl`
 - [x] T012 `window.external` host-object proxy
 - [x] T013 Build + unit tests; validation-results
-- [ ] T014 Push + fork PR to `development`
-- [ ] T015 Operator SC-002
+- [x] T014 Push + fork PR to `development`
+- [x] T015 Operator SC-002
