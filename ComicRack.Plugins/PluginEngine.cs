@@ -11,10 +11,11 @@ namespace cYo.Projects.ComicRack.Plugins
 {
 	public class PluginEngine
 	{
-		private readonly PluginInitializer[] initializers = new PluginInitializer[2]
+		private readonly PluginInitializer[] initializers = new PluginInitializer[3]
 		{
 			new XmlPluginInitializer(),
-			new PythonPluginInitializer()
+			new PythonPluginInitializer(),
+			new JsonPluginInitializer()
 		};
 
 		public const string ScriptTypeCreateBookList = "CreateBookList";
@@ -214,7 +215,16 @@ namespace cYo.Projects.ComicRack.Plugins
 				foreach (Command cfg in list)
 				{
 					Command command = commands.FirstOrDefault((Command c) => c.Key == cfg.Key);
-					if (command != null)
+					if (command == null)
+					{
+						continue;
+					}
+					// Python ConfigScript wins over web auto-Configure (FR-004).
+					if (command.Configure == null)
+					{
+						command.Configure = cfg;
+					}
+					else if (cfg is PythonCommand && command.Configure is WebPluginCommand)
 					{
 						command.Configure = cfg;
 					}

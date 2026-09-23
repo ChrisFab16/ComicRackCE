@@ -65,13 +65,15 @@ From upstream README:
 
 ## Project-specific lessons
 
-### Plugin SPA host (006)
+### Plugin SPA host (006 / 007)
 
-- **Phase 1:** IronPython keeps logic hooks; Configure UI can be a WebView2 SPA via `plugin.json` `ui.configure` + `ComicRack.ShowWebConfigure()`.
+- **Phase 1 (006):** IronPython keeps logic hooks; Configure UI can be a WebView2 SPA via `plugin.json` `ui.configure` + `ComicRack.ShowWebConfigure()`.
+- **Phase 2 (007):** `kind: web` packages need **no** `.py` — `JsonPluginInitializer` registers managed commands; see `specs/007-plugin-web-kind/migration-guide.md` and `deprecation-policy.md`.
 - Host bridge is **JSON-RPC over WebView2 messages** (`specs/006-plugin-webview-host/contracts/`); prefer messages over `AddHostObjectToScript` for versioning.
 - `PackageManager.UnzipFile` must preserve nested paths (SPA `ui/dist`); zip-slip guarded.
-- Sample: `ComicRack/Output/Scripts/WebConfigureSample` + source `samples/webview-configure-sample`.
+- Samples: `WebConfigureSample` (`kind: python`) and `WebKindSample` (`kind: web`).
 - Changing `.py` hooks still requires app restart; SPA asset hot-reload does not.
-- Upstream PRs: product code/tests only — exclude `specs/` and fork `AGENTS.md` (same hygiene as HiDPI).
+- **No upstream PRs** for this work unless operator asks — fork `development` only.
+- IronPython is **not** removed in 007 (dual-run / docs-only deprecation).
 
 _(Add durable ComicRackCE-only lessons here after `/failure-review`; cross-repo lessons go to Codesync `AGENTS.md`.)_

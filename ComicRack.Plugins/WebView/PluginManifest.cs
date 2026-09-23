@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -23,6 +24,9 @@ namespace cYo.Projects.ComicRack.Plugins.WebView
 
 		[JsonPropertyName("ui")]
 		public PluginManifestUi Ui { get; set; }
+
+		[JsonPropertyName("hooks")]
+		public List<PluginManifestHook> Hooks { get; set; }
 
 		public static string ManifestFileName => "plugin.json";
 
@@ -104,5 +108,17 @@ namespace cYo.Projects.ComicRack.Plugins.WebView
 
 		[JsonPropertyName("hotReload")]
 		public bool? HotReload { get; set; }
+	}
+
+	public sealed class PluginManifestHook
+	{
+		[JsonPropertyName("type")]
+		public string Type { get; set; }
+
+		[JsonPropertyName("key")]
+		public string Key { get; set; }
+
+		[JsonPropertyName("name")]
+		public string Name { get; set; }
 	}
 }

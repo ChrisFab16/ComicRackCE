@@ -1,0 +1,17 @@
+{
+  "id": "WebKindSample",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "kind": "web",
+  "ui": {
+    "configure": "ui/dist/index.html",
+    "hotReload": true
+  },
+  "hooks": [
+    {
+      "type": "Books",
+      "key": "WebKindSample",
+      "name": "Web Kind Sample"
+    }
+  ]
+}
