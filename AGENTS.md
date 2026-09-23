@@ -68,8 +68,8 @@ From upstream README:
 ### Plugin SPA host (006 / 007)
 
 - **Phase 1 (006):** IronPython keeps logic hooks; Configure UI can be a WebView2 SPA via `plugin.json` `ui.configure` + `ComicRack.ShowWebConfigure()`.
-- **Phase 2 (007):** `kind: web` packages need **no** `.py` — `JsonPluginInitializer` registers managed commands; see `specs/007-plugin-web-kind/migration-guide.md` and `deprecation-policy.md`.
-- Host bridge is **JSON-RPC over WebView2 messages** (`specs/006-plugin-webview-host/contracts/`); prefer messages over `AddHostObjectToScript` for versioning.
+- **Phase 3 (008):** `ComicInfoHtml` / `QuickOpenHtml` panels use WebView2 (`HtmlComicPageControl`); IE `WebBrowser` removed from that control. `window.external` shim via COM host objects (OpenBooks/Config proxy).
+- Host bridge for Configure remains **JSON-RPC** (`specs/006-…/contracts/`).
 - `PackageManager.UnzipFile` must preserve nested paths (SPA `ui/dist`); zip-slip guarded.
 - Samples: `WebConfigureSample` (`kind: python`) and `WebKindSample` (`kind: web`).
 - Changing `.py` hooks still requires app restart; SPA asset hot-reload does not.
