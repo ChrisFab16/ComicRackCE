@@ -1,21 +1,15 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using cYo.Projects.ComicRack.Engine;
-using cYo.Projects.ComicRack.Engine.Controls;
+using Microsoft.Web.WebView2.WinForms;
 
 namespace cYo.Projects.ComicRack.Plugins.Controls
 {
-	public partial class HtmlComicPageControl : ComicPageControl
+	public partial class HtmlComicPageControl
 	{
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
-        private System.ComponentModel.IContainer components = null;
+		private IContainer components = null;
+		private WebView2 webView;
+
 		protected override void Dispose(bool disposing)
 		{
 			if (disposing)
@@ -24,40 +18,26 @@ namespace cYo.Projects.ComicRack.Plugins.Controls
 				{
 					SaveConfigFunction(ScriptConfig);
 				}
-				if (components != null)
-				{
-					components.Dispose();
-				}
+				components?.Dispose();
 			}
 			base.Dispose(disposing);
 		}
 
 		private void InitializeComponent()
 		{
-            this.webBrowser = new System.Windows.Forms.WebBrowser();
-            this.SuspendLayout();
-            // 
-            // webBrowser
-            // 
-            this.webBrowser.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.webBrowser.Location = new System.Drawing.Point(0, 0);
-            this.webBrowser.MinimumSize = new System.Drawing.Size(20, 20);
-            this.webBrowser.Name = "webBrowser";
-            this.webBrowser.Size = new System.Drawing.Size(540, 402);
-            this.webBrowser.TabIndex = 1;
-            this.webBrowser.WebBrowserShortcutsEnabled = false;
-            // 
-            // HtmlComicPageControl
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.webBrowser);
-            this.Name = "HtmlComicPageControl";
-            this.Size = new System.Drawing.Size(540, 402);
-            this.ResumeLayout(false);
-
+			webView = new WebView2();
+			SuspendLayout();
+			webView.Dock = DockStyle.Fill;
+			webView.Location = new Point(0, 0);
+			webView.Name = "webView";
+			webView.Size = new Size(540, 402);
+			webView.TabIndex = 1;
+			AutoScaleDimensions = new SizeF(6F, 13F);
+			AutoScaleMode = AutoScaleMode.Font;
+			Controls.Add(webView);
+			Name = "HtmlComicPageControl";
+			Size = new Size(540, 402);
+			ResumeLayout(false);
 		}
-
-		private WebBrowser webBrowser;
 	}
 }

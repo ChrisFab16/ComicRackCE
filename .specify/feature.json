@@ -1,6 +1,6 @@
 {
-  "feature": "007-plugin-web-kind",
-  "feature_directory": "specs/007-plugin-web-kind",
-  "branch": "007-plugin-web-kind",
+  "feature": "008-webview-html-panels",
+  "feature_directory": "specs/008-webview-html-panels",
+  "branch": "008-webview-html-panels",
   "base": "development"
 }
