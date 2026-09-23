@@ -9,6 +9,7 @@ using cYo.Projects.ComicRack.Engine.Database;
 using cYo.Projects.ComicRack.Engine.Display;
 using cYo.Projects.ComicRack.Plugins.Automation;
 using cYo.Projects.ComicRack.Plugins.Theme;
+using cYo.Projects.ComicRack.Plugins.WebView;
 
 namespace cYo.Projects.ComicRack.Plugins
 {
@@ -107,6 +108,11 @@ namespace cYo.Projects.ComicRack.Plugins
 		public object Clone()
 		{
 			return new PluginEnvironment(MainWindow, App, Browser, ComicDisplay, config, OpenBooks, Theme);
+		}
+
+		public DialogResult ShowWebConfigure(string packageDirectory = null)
+		{
+			return WebViewPluginHost.ShowConfigure(this, packageDirectory);
 		}
 	}
 }

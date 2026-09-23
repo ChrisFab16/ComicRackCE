@@ -42,5 +42,10 @@ namespace cYo.Projects.ComicRack.Plugins
 		IThemePlugin Theme { get; set; }
 
 		string Localize(string resourceKey, string elementKey, string text);
+
+		/// <summary>
+		/// Open the package WebView2 Configure SPA declared in plugin.json (ui.configure).
+		/// </summary>
+		System.Windows.Forms.DialogResult ShowWebConfigure(string packageDirectory = null);
 	}
 }

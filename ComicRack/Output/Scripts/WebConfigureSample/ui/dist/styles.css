@@ -1,0 +1,59 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f4f6f8;
+  --fg: #1a1a1a;
+  --accent: #0b6bcb;
+  --card: #ffffff;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1e1e1e;
+    --fg: #f0f0f0;
+    --card: #2a2a2a;
+  }
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+.meta { opacity: 0.85; font-size: 0.95rem; }
+label { display: block; margin: 1rem 0 0.5rem; font-weight: 600; }
+textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  box-sizing: border-box;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #8884;
+  background: var(--card);
+  color: var(--fg);
+}
+.actions { display: flex; gap: 0.5rem; margin: 0.75rem 0 1.25rem; }
+button {
+  background: var(--accent);
+  color: #fff;
+  border: 0;
+  border-radius: 6px;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+}
+button:hover { filter: brightness(1.08); }
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+li {
+  background: var(--card);
+  margin: 0.4rem 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+}

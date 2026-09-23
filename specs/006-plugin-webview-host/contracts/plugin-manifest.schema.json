@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://comicrack.local/schemas/plugin-manifest.schema.json",
+  "title": "ComicRack plugin.json manifest",
+  "description": "Optional companion to Package.ini. Declares SPA UI entry points and Host API version. Package.ini Name/Version remain authoritative for install until a later dual-host cutover.",
+  "type": "object",
+  "required": ["id", "version", "apiVersion"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable plugin id; used as ConfigScript Key when auto-wiring Configure UI."
+    },
+    "version": {
+      "type": "string",
+      "description": "Semver-ish package version (should match Package.ini Version)."
+    },
+    "apiVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Host API major version required (1 = this contract)."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["python", "web"],
+      "default": "python",
+      "description": "python = IronPython logic + optional SPA UI; web = SPA-first (Phase 2)."
+    },
+    "ui": {
+      "type": "object",
+      "properties": {
+        "configure": {
+          "type": "string",
+          "description": "Package-relative path to Configure SPA entry HTML (e.g. ui/dist/index.html)."
+        },
+        "hotReload": {
+          "type": "boolean",
+          "default": true,
+          "description": "Watch configure entry directory and reload WebView2 on change."
+        }
+      },
+      "additionalProperties": false
+    },
+    "hooks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": { "type": "string" },
+          "key": { "type": "string" },
+          "name": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

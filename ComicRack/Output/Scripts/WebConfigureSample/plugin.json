@@ -1,0 +1,10 @@
+{
+  "id": "WebConfigureSample",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "kind": "python",
+  "ui": {
+    "configure": "ui/dist/index.html",
+    "hotReload": true
+  }
+}
