@@ -1,6 +1,6 @@
 {
-  "feature": "006-plugin-webview-host",
-  "feature_directory": "specs/006-plugin-webview-host",
-  "branch": "006-plugin-webview-host",
+  "feature": "007-plugin-web-kind",
+  "feature_directory": "specs/007-plugin-web-kind",
+  "branch": "007-plugin-web-kind",
   "base": "development"
 }
