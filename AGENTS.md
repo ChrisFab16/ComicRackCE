@@ -31,19 +31,21 @@ git merge --ff-only upstream/master
 git checkout development
 ```
 
-## Spec Kit (enabled on `development`)
+## Spec Kit (enabled on `development`) — full adherence
 
 Spec Kit is initialized on `development` with Cursor Agent integration and the **git extension**.
 
-- **Workflow:** `/speckit-constitution` → `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → **`/speckit-analyze`** → `/speckit-implement`
-- **Analyze gate:** mandatory after tasks and before implement (global rules §24)
-- **Bugfixes / new scope:** need specs — no silent hotfixes on `master`
+**From 2026-09-23:** all product/code changes (including bugfixes, packaging, samples, Host API, WebView2) require the full gate sequence. No silent hotfixes.
+
+- **Workflow:** `/speckit-constitution` → `/speckit-specify` → `/speckit-plan` → `/speckit-tasks` → **`/speckit-analyze`** → **`/speckit-checklist-pre-implement`** → `/speckit-implement` → `/universal-code-review` → `/speckit-converge` (if needed)
+- **Analyze gate:** mandatory after tasks and before implement (Codesync §24) — artifact consistency only
+- **Checklist gate:** mandatory after analyze PASS and before feature code
+- **Bugfixes / new scope:** need specs — no silent hotfixes on `master` or `development`
 - **Feature branches:** git extension creates `NNN-short-name` branches from current branch (stay on `development` when starting features)
 - **Auto-commit:** enabled for `after_*` artifact steps in `.specify/extensions/git/git-config.yml` (constitution, spec, plan, tasks, analyze, checklist). `after_implement` stays off — enable when you want incremental code commits.
+- **Related plugin fork:** Library Organizer (`external/comicrack-library-organizer/`) same Spec Kit rule — see that repo’s `AGENTS.md`
 
 Active feature path: `.specify/feature.json` (created by `/speckit-specify`)
-
-**Next bootstrap step:** run `/speckit-constitution` to replace the template in `.specify/memory/constitution.md`.
 
 ## Tech stack
 
