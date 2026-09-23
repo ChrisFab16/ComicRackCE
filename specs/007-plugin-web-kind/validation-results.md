@@ -16,7 +16,7 @@
 
 | Gate | Result | Notes |
 |------|--------|-------|
-| SC-002 WebKindSample Configure | pending | Sample copied to AppData `Scripts/WebKindSample` (no `.py`). Restart Debug EXE → Packages **Web Kind Sample** → Configure |
+| SC-002 WebKindSample Configure | **PASS** | Operator: Configure SPA opens (kind=web, no `.py`) |
 
 ## Quick test
 

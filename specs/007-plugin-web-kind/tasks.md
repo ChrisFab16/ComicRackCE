@@ -22,4 +22,4 @@
 
 - [x] T030 Link guides from `AGENTS.md`
 - [x] T031 Run unit tests (SC-001, SC-003) — 11 passed
-- [ ] T032 Operator SC-002: WebKindSample Configure (installed to AppData; restart Debug EXE)
+- [x] T032 Operator SC-002: WebKindSample Configure (installed to AppData; restart Debug EXE)
