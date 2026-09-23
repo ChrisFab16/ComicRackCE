@@ -75,5 +75,7 @@ From upstream README:
 - Changing `.py` hooks still requires app restart; SPA asset hot-reload does not.
 - **No upstream PRs** for this work unless operator asks — fork `development` only.
 - IronPython is **not** removed in 007 (dual-run / docs-only deprecation).
+- **Library Organizer Configure SPA (Phase A):** fork branch `configure-spa` / package **2.2.0** — profile overview via CE `ShowWebConfigure`; classic WinForms fallback. Full tab SPA port is follow-up.
+
 
 _(Add durable ComicRackCE-only lessons here after `/failure-review`; cross-repo lessons go to Codesync `AGENTS.md`.)_
