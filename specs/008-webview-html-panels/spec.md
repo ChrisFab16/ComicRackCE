@@ -42,6 +42,7 @@ As a plugin author, existing `window.external.ComicRack.OpenBooks.OpenFile(...)`
 - **FR-003**: MUST expose a `window.external`-compatible bridge for `Config` and `ComicRack.OpenBooks.OpenFile` (COM host object + polyfill).
 - **FR-004**: MUST preserve SaveConfig-on-dispose behavior.
 - **FR-005**: ScriptErrors / context menu settings SHOULD map to WebView2 settings where applicable.
+- **FR-006**: HTML panel WebView2 MUST use a dedicated `UserDataFolder` under LocalAppData (not the process default shared with plugin Configure), so opening Configure while Info panels are loaded does not hang `EnsureCoreWebView2Async`.
 
 ## Success Criteria
 
@@ -49,6 +50,7 @@ As a plugin author, existing `window.external.ComicRack.OpenBooks.OpenFile(...)`
 - **SC-002**: Operator: Sample ComicInfoHtml panel renders and Open works (or documented partial).
 - **SC-003**: No `new WebBrowser()` in HtmlComicPageControl.
 - **SC-004**: Analyze CRITICAL=0; IronPython hooks unchanged.
+- **SC-005**: Operator: Library Organizer Configure opens within a few seconds while Info panel is visible (no indefinite hang).
 
 ## Assumptions
 

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using cYo.Projects.ComicRack.Engine;
 using cYo.Projects.ComicRack.Engine.Controls;
+using cYo.Projects.ComicRack.Plugins.WebView;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
@@ -57,7 +59,10 @@ namespace cYo.Projects.ComicRack.Plugins.Controls
 			webViewInitStarted = true;
 			try
 			{
-				await webView.EnsureCoreWebView2Async(null);
+				string userData = WebViewPluginForm.GetWebView2UserDataFolder("HtmlPanels");
+				Directory.CreateDirectory(userData);
+				CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, userData);
+				await webView.EnsureCoreWebView2Async(env);
 				webView.CoreWebView2.Settings.IsStatusBarEnabled = false;
 				webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = EngineConfiguration.Default.HtmlInfoContextMenu;
 				webView.CoreWebView2.Settings.AreBrowserAcceleratorKeysEnabled = false;

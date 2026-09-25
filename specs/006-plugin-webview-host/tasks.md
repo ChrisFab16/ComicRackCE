@@ -40,3 +40,4 @@
 - [x] T050 Run unit tests (SC-001, SC-002)
 - [x] T051 Smoke: build ComicsRack.Plugins + open sample Configure when WebView2 present (SC-003)
 - [x] T052 Confirm IronPython Sample.py still parses (SC-004)
+- [x] T053 Dedicated WebView2 UserDataFolders for PluginConfigure + HtmlPanels (hang when both share process default)

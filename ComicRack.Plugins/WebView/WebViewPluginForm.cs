@@ -58,7 +58,11 @@ namespace cYo.Projects.ComicRack.Plugins.WebView
 		{
 			try
 			{
-				CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync();
+				// Dedicated profile folder — sharing the process default with HtmlComicPageControl
+				// (Info panel) can hang EnsureCoreWebView2Async / CreateAsync indefinitely.
+				string userData = GetWebView2UserDataFolder("PluginConfigure");
+				Directory.CreateDirectory(userData);
+				CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, userData);
 				await webView.EnsureCoreWebView2Async(env);
 			}
 			catch (Exception ex)
@@ -90,6 +94,16 @@ namespace cYo.Projects.ComicRack.Plugins.WebView
 			{
 				StartWatcher(folder);
 			}
+		}
+
+		internal static string GetWebView2UserDataFolder(string purpose)
+		{
+			string root = Path.Combine(
+				Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+				"ComicRack Community Edition",
+				"WebView2",
+				purpose ?? "Default");
+			return root;
 		}
 
 		private void OnWebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
