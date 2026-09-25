@@ -43,6 +43,7 @@ As a plugin author, existing `window.external.ComicRack.OpenBooks.OpenFile(...)`
 - **FR-004**: MUST preserve SaveConfig-on-dispose behavior.
 - **FR-005**: ScriptErrors / context menu settings SHOULD map to WebView2 settings where applicable.
 - **FR-006**: HTML panel WebView2 MUST use a dedicated `UserDataFolder` under LocalAppData (not the process default shared with plugin Configure), so opening Configure while Info panels are loaded does not hang `EnsureCoreWebView2Async`.
+- **FR-007** (host Configure): `WebViewPluginForm` MUST show a visible loading state (message + marquee) from open until the SPA navigation completes, so Configure never appears blank/stuck.
 
 ## Success Criteria
 

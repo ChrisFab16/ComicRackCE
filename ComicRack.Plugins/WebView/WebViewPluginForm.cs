@@ -17,6 +17,9 @@ namespace cYo.Projects.ComicRack.Plugins.WebView
 		private readonly bool hotReload;
 		private readonly HostJsonRpcContext rpcContext;
 		private WebView2 webView;
+		private Panel loadingPanel;
+		private Label loadingLabel;
+		private ProgressBar loadingBar;
 		private FileSystemWatcher watcher;
 		private System.Windows.Forms.Timer debounceTimer;
 		private bool closing;
@@ -41,6 +44,30 @@ namespace cYo.Projects.ComicRack.Plugins.WebView
 			};
 			Controls.Add(webView);
 
+			loadingPanel = new Panel
+			{
+				Dock = DockStyle.Fill,
+				BackColor = SystemColors.Window
+			};
+			loadingLabel = new Label
+			{
+				Text = "Loading Configure…",
+				Dock = DockStyle.Fill,
+				TextAlign = ContentAlignment.MiddleCenter,
+				Font = new Font(SystemFonts.MessageBoxFont.FontFamily, 11f, FontStyle.Regular)
+			};
+			loadingBar = new ProgressBar
+			{
+				Style = ProgressBarStyle.Marquee,
+				MarqueeAnimationSpeed = 30,
+				Dock = DockStyle.Bottom,
+				Height = 24
+			};
+			loadingPanel.Controls.Add(loadingLabel);
+			loadingPanel.Controls.Add(loadingBar);
+			Controls.Add(loadingPanel);
+			loadingPanel.BringToFront();
+
 			rpcContext.ReloadUi = () => BeginInvoke(new Action(ReloadSafe));
 			rpcContext.CloseUi = result => BeginInvoke(new Action(() =>
 			{
@@ -54,6 +81,16 @@ namespace cYo.Projects.ComicRack.Plugins.WebView
 			FormClosed += (s, e) => DisposeWatcher();
 		}
 
+		private void HideLoadingOverlay()
+		{
+			if (loadingPanel == null || loadingPanel.IsDisposed)
+			{
+				return;
+			}
+			loadingPanel.Visible = false;
+			loadingPanel.SendToBack();
+		}
+
 		private async Task InitializeAsync()
 		{
 			try
@@ -62,11 +99,13 @@ namespace cYo.Projects.ComicRack.Plugins.WebView
 				// (Info panel) can hang EnsureCoreWebView2Async / CreateAsync indefinitely.
 				string userData = GetWebView2UserDataFolder("PluginConfigure");
 				Directory.CreateDirectory(userData);
+				loadingLabel.Text = "Starting WebView2…";
 				CoreWebView2Environment env = await CoreWebView2Environment.CreateAsync(null, userData);
 				await webView.EnsureCoreWebView2Async(env);
 			}
 			catch (Exception ex)
 			{
+				HideLoadingOverlay();
 				MessageBox.Show(this,
 					"Microsoft Edge WebView2 Runtime is required for plugin SPA UI.\n\n" + ex.Message,
 					"WebView2 unavailable",
@@ -80,6 +119,13 @@ namespace cYo.Projects.ComicRack.Plugins.WebView
 			webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
 			webView.CoreWebView2.Settings.IsStatusBarEnabled = false;
 			webView.CoreWebView2.WebMessageReceived += OnWebMessageReceived;
+			webView.CoreWebView2.NavigationCompleted += (s, e) =>
+			{
+				if (!IsDisposed)
+				{
+					BeginInvoke(new Action(HideLoadingOverlay));
+				}
+			};
 
 			string folder = Path.GetDirectoryName(configureHtmlPath);
 			webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
@@ -87,6 +133,7 @@ namespace cYo.Projects.ComicRack.Plugins.WebView
 				folder,
 				CoreWebView2HostResourceAccessKind.Allow);
 
+			loadingLabel.Text = "Loading Configure UI…";
 			string fileName = Path.GetFileName(configureHtmlPath);
 			webView.CoreWebView2.Navigate($"https://{VirtualHostName}/{fileName}");
 

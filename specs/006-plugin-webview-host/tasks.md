@@ -41,3 +41,4 @@
 - [x] T051 Smoke: build ComicsRack.Plugins + open sample Configure when WebView2 present (SC-003)
 - [x] T052 Confirm IronPython Sample.py still parses (SC-004)
 - [x] T053 Dedicated WebView2 UserDataFolders for PluginConfigure + HtmlPanels (hang when both share process default)
+- [x] T054 Loading overlay on `WebViewPluginForm` until NavigationCompleted (marquee + status text)
