@@ -47,20 +47,20 @@ namespace cYo.Projects.ComicRack.Engine.IO
 		public bool TryLoad(string onnxPath, out string error)
 		{
 			error = string.Empty;
-			if (string.IsNullOrWhiteSpace(onnxPath) || !File.Exists(onnxPath))
+			if (!FbcnnModelIntegrity.TryValidate(onnxPath, out error))
 			{
-				error = "ONNX model file not found: " + onnxPath;
 				lastError = error;
 				return false;
 			}
+			string fullPath = Path.GetFullPath(onnxPath);
 			lock (gate)
 			{
 				DisposeSession_NoLock();
 				try
 				{
 					var opts = new SessionOptions();
-					session = new InferenceSession(onnxPath, opts);
-					modelPath = Path.GetFullPath(onnxPath);
+					session = new InferenceSession(fullPath, opts);
+					modelPath = fullPath;
 					lastError = string.Empty;
 					return true;
 				}
