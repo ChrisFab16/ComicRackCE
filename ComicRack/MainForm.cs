@@ -28,9 +28,9 @@ using cYo.Projects.ComicRack.Engine;
 using cYo.Projects.ComicRack.Engine.Controls;
 using cYo.Projects.ComicRack.Engine.Database;
 using cYo.Projects.ComicRack.Engine.Display;
+using cYo.Projects.ComicRack.Engine.IO;
 using cYo.Projects.ComicRack.Engine.Display.Forms;
 using cYo.Projects.ComicRack.Engine.Drawing;
-using cYo.Projects.ComicRack.Engine.IO;
 using cYo.Projects.ComicRack.Engine.IO.Network;
 using cYo.Projects.ComicRack.Engine.IO.Provider;
 using cYo.Projects.ComicRack.Engine.Sync;
@@ -3974,7 +3974,11 @@ namespace cYo.Projects.ComicRack.Viewer
 			tsScanActivity.Visible = Program.Scanner.IsScanning;
 			tsWriteInfoActivity.Visible = Program.QueueManager.IsInComicFileUpdate;
 			tsReadInfoActivity.Visible = Program.QueueManager.IsInComicFileRefresh;
-			tsPageActivity.Visible = Program.ImagePool.IsWorking;
+			tsPageActivity.Visible = Program.ImagePool.IsWorking || PageImageFilterHost.IsProcessing;
+			if (PageImageFilterHost.IsProcessing && !string.IsNullOrEmpty(PageImageFilterHost.StatusText))
+			{
+				tsPageActivity.ToolTipText = PageImageFilterHost.StatusText;
+			}
 			tsBackupActivity.Visible = Program.BackupManager.IsBackupActive;
 			bool isInComicConversion = Program.QueueManager.IsInComicConversion;
 			int pendingComicConversions = Program.QueueManager.PendingComicConversions;
@@ -4362,6 +4366,70 @@ namespace cYo.Projects.ComicRack.Viewer
 			{
 				Program.Database.Undo.SetMarker(TR.Messages["UndoShowInfo", "Show Info"]);
 				ComicBookDialog.Show(Form.ActiveForm ?? this, books.FirstOrDefault(), null, null);
+			}
+		}
+
+		public bool IsArtifactReductionEnabled => !string.IsNullOrEmpty(PageImageFilterHost.CurrentFingerprint);
+
+		public string ArtifactReductionStatus
+		{
+			get
+			{
+				string status = PageImageFilterHost.StatusText;
+				if (!string.IsNullOrEmpty(status))
+				{
+					return status;
+				}
+				return PageImageFilterHost.LastError ?? string.Empty;
+			}
+		}
+
+		public bool SetArtifactReductionEnabled(bool enabled, string onnxModelPath)
+		{
+			PageImageFilterHost.SetCurrentWindow(ComicDisplay);
+			if (!enabled)
+			{
+				PageImageFilterHost.CancelInFlight();
+				PageImageFilterHost.DisableFbcnn();
+				InvalidateArtifactReductionPages();
+				return true;
+			}
+			if (string.IsNullOrWhiteSpace(onnxModelPath))
+			{
+				return false;
+			}
+			Cursor previous = Cursor.Current;
+			try
+			{
+				Cursor.Current = Cursors.WaitCursor;
+				if (!PageImageFilterHost.EnableFbcnn(onnxModelPath, 1024, out string error))
+				{
+					AskQuestion(
+						string.IsNullOrEmpty(error)
+							? "Could not enable artifact reduction (model missing or failed to load)."
+							: error,
+						"OK",
+						null);
+					return false;
+				}
+				InvalidateArtifactReductionPages();
+				ComicDisplay?.RefreshDisplay();
+				return true;
+			}
+			finally
+			{
+				Cursor.Current = previous;
+			}
+		}
+
+		private void InvalidateArtifactReductionPages()
+		{
+			try
+			{
+				Program.ImagePool.Pages.MemoryCache.Clear(evenLocked: true);
+			}
+			catch
+			{
 			}
 		}
 

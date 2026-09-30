@@ -1,14 +1,23 @@
+using System;
+using System.Collections.Concurrent;
 using System.Drawing;
 
 namespace cYo.Projects.ComicRack.Engine.IO
 {
 	/// <summary>
-	/// Process-wide registration for the active page-image filter (v1: at most one).
-	/// Default off. Dev identity filter used for pipeline spike only.
+	/// Registration for the active page-image filter. Default off.
+	/// Per-window state is stored by key; Active reflects the current reader window.
 	/// </summary>
 	public static class PageImageFilterHost
 	{
+		private static readonly ConcurrentDictionary<object, ReaderWindowFilterState> windowStates =
+			new ConcurrentDictionary<object, ReaderWindowFilterState>();
+
+		private static FbcnnPageImageFilter fbcnn;
 		private static IPageImageFilter active;
+		private static object currentWindowKey = "default";
+
+		public static event EventHandler StatusChanged;
 
 		public static IPageImageFilter Active
 		{
@@ -16,7 +25,12 @@ namespace cYo.Projects.ComicRack.Engine.IO
 			set => active = value;
 		}
 
-		/// <summary>Fingerprint for PageKey cache identity; empty when no filter or disabled.</summary>
+		public static string StatusText => fbcnn?.StatusText ?? string.Empty;
+
+		public static bool IsProcessing => fbcnn != null && fbcnn.IsProcessing;
+
+		public static string LastError => fbcnn?.LastError ?? string.Empty;
+
 		public static string CurrentFingerprint
 		{
 			get
@@ -26,9 +40,57 @@ namespace cYo.Projects.ComicRack.Engine.IO
 				{
 					return string.Empty;
 				}
-				string fp = f.Fingerprint;
-				return fp ?? string.Empty;
+				return f.Fingerprint ?? string.Empty;
 			}
+		}
+
+		public static void SetCurrentWindow(object windowKey)
+		{
+			currentWindowKey = windowKey ?? "default";
+		}
+
+		public static ReaderWindowFilterState GetOrCreateState(object windowKey)
+		{
+			object key = windowKey ?? "default";
+			return windowStates.GetOrAdd(key, _ => new ReaderWindowFilterState());
+		}
+
+		/// <summary>Enable FBCNN for the current window. Lazy-loads ONNX. Returns false on failure.</summary>
+		public static bool EnableFbcnn(string onnxPath, int maxLongEdge, out string error)
+		{
+			error = string.Empty;
+			if (fbcnn == null)
+			{
+				fbcnn = new FbcnnPageImageFilter();
+				fbcnn.StatusChanged += (s, e) => StatusChanged?.Invoke(null, EventArgs.Empty);
+			}
+			if (!fbcnn.TryEnable(onnxPath, maxLongEdge, out error))
+			{
+				active = null;
+				GetOrCreateState(currentWindowKey).Enabled = false;
+				return false;
+			}
+			ReaderWindowFilterState st = GetOrCreateState(currentWindowKey);
+			st.Enabled = true;
+			st.ModelPath = onnxPath;
+			st.MaxLongEdge = maxLongEdge > 0 ? maxLongEdge : 1024;
+			active = fbcnn;
+			return true;
+		}
+
+		public static void DisableFbcnn()
+		{
+			if (fbcnn != null)
+			{
+				fbcnn.Disable();
+			}
+			GetOrCreateState(currentWindowKey).Enabled = false;
+			active = null;
+		}
+
+		public static void CancelInFlight()
+		{
+			fbcnn?.CancelWork();
 		}
 
 		/// <summary>Enable a no-op clone filter for ImagePool pipeline spike (T007/T008).</summary>
@@ -57,7 +119,6 @@ namespace cYo.Projects.ComicRack.Engine.IO
 				{
 					return null;
 				}
-				// Clone so cache keys / ownership behave like a real filter output.
 				return (Bitmap)source.Clone();
 			}
 		}

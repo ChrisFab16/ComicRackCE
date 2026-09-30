@@ -48,5 +48,17 @@ namespace cYo.Projects.ComicRack.Plugins.Automation
 		int AskQuestion(string question, string buttonText, string optionText);
 
 		void ShowComicInfo(IEnumerable<ComicBook> books);
+
+		/// <summary>
+		/// Enable or disable FBCNN JPEG artifact reduction for the current reader window (display-only).
+		/// When enabling, onnxModelPath must point to a readable .onnx file. Returns false on failure.
+		/// </summary>
+		bool SetArtifactReductionEnabled(bool enabled, string onnxModelPath);
+
+		/// <summary>True when artifact reduction is enabled for the current reader context.</summary>
+		bool IsArtifactReductionEnabled { get; }
+
+		/// <summary>Last error or processing status for artifact reduction UI.</summary>
+		string ArtifactReductionStatus { get; }
 	}
 }
