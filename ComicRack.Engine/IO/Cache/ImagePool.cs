@@ -263,7 +263,9 @@ namespace cYo.Projects.ComicRack.Engine.IO.Cache
 						Bitmap bitmap2 = null;
 						BitmapAdjustment bitmapAdjustment = key.Adjustment;
 						ImageRotation imageRotation = key.Rotation;
-						if (bitmapAdjustment.IsEmpty && imageRotation == ImageRotation.None)
+						bool pageFilterActive = !string.IsNullOrEmpty(key.FilterFingerprint);
+						// Raw byte fast-path only when no adjustment, rotation, or page filter (stock path).
+						if (bitmapAdjustment.IsEmpty && imageRotation == ImageRotation.None && !pageFilterActive)
 						{
 							byte[] byteImage = provider.GetByteImage(key.Index);
 							if (byteImage != null)
@@ -293,10 +295,25 @@ namespace cYo.Projects.ComicRack.Engine.IO.Cache
 							bitmap2 = (bitmap = provider.GetImage(key.Index));
 							if (bitmap2 != null && provider.IsSlow)
 							{
-								PageKey key2 = new PageKey(key.Source, key.Location, key.Size, key.Modified, key.Index, ImageRotation.None, BitmapAdjustment.Empty);
+								PageKey key2 = new PageKey(key.Source, key.Location, key.Size, key.Modified, key.Index, ImageRotation.None, BitmapAdjustment.Empty, string.Empty);
 								using (PageImage item = PageImage.CreateFrom(bitmap2))
 								{
 									pages.DiskCache.AddItem(key2, item);
+								}
+							}
+						}
+						// Optional display-only page filter (FBCNN spike / artifact reduction). Never writes archives.
+						if (pageFilterActive && bitmap2 != null)
+						{
+							IPageImageFilter pageFilter = PageImageFilterHost.Active;
+							if (pageFilter != null && pageFilter.IsEnabled)
+							{
+								Bitmap filtered = pageFilter.Apply(bitmap2);
+								if (filtered != null && !object.ReferenceEquals(filtered, bitmap2))
+								{
+									bitmap2.Dispose();
+									bitmap2 = filtered;
+									bitmap = filtered;
 								}
 							}
 						}
