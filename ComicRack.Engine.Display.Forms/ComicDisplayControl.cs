@@ -1492,6 +1492,8 @@ namespace cYo.Projects.ComicRack.Engine.Display.Forms
 			{
 				return null;
 			}
+			// Bind filter fingerprint to this reader window (per-window enable state).
+			cYo.Projects.ComicRack.Engine.IO.PageImageFilterHost.SetCurrentWindow(this);
 			PageKey pageKey = Book.GetPageKey(page);
 			pageKey.Source = this;
 			return pageKey;

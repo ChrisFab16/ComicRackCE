@@ -302,19 +302,16 @@ namespace cYo.Projects.ComicRack.Engine.IO.Cache
 								}
 							}
 						}
-						// Optional display-only page filter (FBCNN spike / artifact reduction). Never writes archives.
+						// Optional display-only page filter (FBCNN). Never writes archives.
+						// Apply by key fingerprint (not Active window) so prefetch from another window stays correct.
 						if (pageFilterActive && bitmap2 != null)
 						{
-							IPageImageFilter pageFilter = PageImageFilterHost.Active;
-							if (pageFilter != null && pageFilter.IsEnabled)
+							Bitmap filtered = PageImageFilterHost.ApplyForFingerprint(key.FilterFingerprint, bitmap2);
+							if (filtered != null && !object.ReferenceEquals(filtered, bitmap2))
 							{
-								Bitmap filtered = pageFilter.Apply(bitmap2);
-								if (filtered != null && !object.ReferenceEquals(filtered, bitmap2))
-								{
-									bitmap2.Dispose();
-									bitmap2 = filtered;
-									bitmap = filtered;
-								}
+								bitmap2.Dispose();
+								bitmap2 = filtered;
+								bitmap = filtered;
 							}
 						}
 						try

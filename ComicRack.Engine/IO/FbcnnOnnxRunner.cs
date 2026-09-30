@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -11,6 +12,8 @@ namespace cYo.Projects.ComicRack.Engine.IO
 {
 	/// <summary>
 	/// Lazy ONNX Runtime session for FBCNN color model (display-only; never writes archives).
+	/// Inference is serialized: InferenceSession.Run is not concurrent-safe.
+	/// CancellationToken is checked around work; ORT Run itself cannot be aborted mid-call.
 	/// </summary>
 	public sealed class FbcnnOnnxRunner : IDisposable
 	{
@@ -56,7 +59,6 @@ namespace cYo.Projects.ComicRack.Engine.IO
 				try
 				{
 					var opts = new SessionOptions();
-					// CPU first; DirectML/CUDA can be added later (T015b follow-up).
 					session = new InferenceSession(onnxPath, opts);
 					modelPath = Path.GetFullPath(onnxPath);
 					lastError = string.Empty;
@@ -92,75 +94,111 @@ namespace cYo.Projects.ComicRack.Engine.IO
 			{
 				return null;
 			}
-			InferenceSession s;
-			lock (gate)
-			{
-				s = session;
-			}
-			if (s == null)
-			{
-				throw new InvalidOperationException(string.IsNullOrEmpty(lastError) ? "FBCNN model not loaded" : lastError);
-			}
 			cancel.ThrowIfCancellationRequested();
 
 			int ow = source.Width;
 			int oh = source.Height;
-			Bitmap work = source;
+			Bitmap work = null;
 			bool disposeWork = false;
-			int longEdge = Math.Max(ow, oh);
-			if (longEdge > maxLongEdge)
-			{
-				float scale = maxLongEdge / (float)longEdge;
-				int nw = Math.Max(8, (int)(ow * scale) / 8 * 8);
-				int nh = Math.Max(8, (int)(oh * scale) / 8 * 8);
-				work = new Bitmap(nw, nh, PixelFormat.Format24bppRgb);
-				disposeWork = true;
-				using (Graphics g = Graphics.FromImage(work))
-				{
-					g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-					g.DrawImage(source, 0, 0, nw, nh);
-				}
-			}
-
+			float[] rented = null;
 			try
 			{
-				cancel.ThrowIfCancellationRequested();
-				float[] chw = BitmapToChw(work);
-				var input = new DenseTensor<float>(chw, new[] { 1, 3, work.Height, work.Width });
-				var inputs = new[] { NamedOnnxValue.CreateFromTensor("image", input) };
-				using (IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = s.Run(inputs))
+				work = EnsureBgr24(source, out disposeWork);
+				int longEdge = Math.Max(work.Width, work.Height);
+				if (longEdge > maxLongEdge)
 				{
-					cancel.ThrowIfCancellationRequested();
-					Tensor<float> restored = results[0].AsTensor<float>();
-					Bitmap small = ChwToBitmap(restored);
-					if (!disposeWork && small.Width == ow && small.Height == oh)
-					{
-						return small;
-					}
-					Bitmap full = new Bitmap(ow, oh, PixelFormat.Format32bppArgb);
-					using (Graphics g = Graphics.FromImage(full))
+					float scale = maxLongEdge / (float)longEdge;
+					int nw = Math.Max(8, (int)(work.Width * scale) / 8 * 8);
+					int nh = Math.Max(8, (int)(work.Height * scale) / 8 * 8);
+					Bitmap scaled = new Bitmap(nw, nh, PixelFormat.Format24bppRgb);
+					using (Graphics g = Graphics.FromImage(scaled))
 					{
 						g.InterpolationMode = InterpolationMode.HighQualityBicubic;
-						g.DrawImage(small, 0, 0, ow, oh);
+						g.DrawImage(work, 0, 0, nw, nh);
 					}
-					small.Dispose();
-					return full;
+					if (disposeWork)
+					{
+						work.Dispose();
+					}
+					work = scaled;
+					disposeWork = true;
+				}
+
+				cancel.ThrowIfCancellationRequested();
+				int w = work.Width;
+				int h = work.Height;
+				int need = 3 * h * w;
+				rented = ArrayPool<float>.Shared.Rent(need);
+				BitmapToChw(work, rented);
+				var input = new DenseTensor<float>(rented.AsMemory(0, need), new[] { 1, 3, h, w });
+				var inputs = new[] { NamedOnnxValue.CreateFromTensor("image", input) };
+
+				// Serialize all session use (load + Run): ORT sessions are not concurrent-safe.
+				lock (gate)
+				{
+					if (session == null)
+					{
+						throw new InvalidOperationException(string.IsNullOrEmpty(lastError) ? "FBCNN model not loaded" : lastError);
+					}
+					cancel.ThrowIfCancellationRequested();
+					using (IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = session.Run(inputs))
+					{
+						cancel.ThrowIfCancellationRequested();
+						Tensor<float> restored = results[0].AsTensor<float>();
+						Bitmap small = ChwToBitmap(restored);
+						if (small.Width == ow && small.Height == oh)
+						{
+							return small;
+						}
+						Bitmap full = new Bitmap(ow, oh, PixelFormat.Format32bppArgb);
+						using (Graphics g = Graphics.FromImage(full))
+						{
+							g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+							g.DrawImage(small, 0, 0, ow, oh);
+						}
+						small.Dispose();
+						return full;
+					}
 				}
 			}
 			finally
 			{
-				if (disposeWork)
+				if (rented != null)
+				{
+					ArrayPool<float>.Shared.Return(rented);
+				}
+				if (disposeWork && work != null)
 				{
 					work.Dispose();
 				}
 			}
 		}
 
-		private static float[] BitmapToChw(Bitmap bmp)
+		/// <summary>Return a 24bpp BGR bitmap suitable for LockBits; may be source or a clone.</summary>
+		private static Bitmap EnsureBgr24(Bitmap source, out bool disposeResult)
 		{
+			if (source.PixelFormat == PixelFormat.Format24bppRgb)
+			{
+				disposeResult = false;
+				return source;
+			}
+			Bitmap copy = new Bitmap(source.Width, source.Height, PixelFormat.Format24bppRgb);
+			using (Graphics g = Graphics.FromImage(copy))
+			{
+				g.DrawImage(source, 0, 0, source.Width, source.Height);
+			}
+			disposeResult = true;
+			return copy;
+		}
+
+		private static void BitmapToChw(Bitmap bmp, float[] data)
+		{
+			if (bmp.PixelFormat != PixelFormat.Format24bppRgb)
+			{
+				throw new InvalidOperationException("BitmapToChw requires Format24bppRgb");
+			}
 			int w = bmp.Width;
 			int h = bmp.Height;
-			float[] data = new float[3 * h * w];
 			var rect = new Rectangle(0, 0, w, h);
 			BitmapData bd = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 			try
@@ -174,7 +212,6 @@ namespace cYo.Projects.ComicRack.Engine.IO
 						byte* row = ptr + y * stride;
 						for (int x = 0; x < w; x++)
 						{
-							// Format24bppRgb is BGR
 							byte b = row[x * 3 + 0];
 							byte g = row[x * 3 + 1];
 							byte r = row[x * 3 + 2];
@@ -190,7 +227,6 @@ namespace cYo.Projects.ComicRack.Engine.IO
 			{
 				bmp.UnlockBits(bd);
 			}
-			return data;
 		}
 
 		private static Bitmap ChwToBitmap(Tensor<float> t)
@@ -211,7 +247,6 @@ namespace cYo.Projects.ComicRack.Engine.IO
 						byte* row = ptr + y * stride;
 						for (int x = 0; x < w; x++)
 						{
-							int i = y * w + x;
 							float rf = t[0, 0, y, x];
 							float gf = t[0, 1, y, x];
 							float bf = t[0, 2, y, x];

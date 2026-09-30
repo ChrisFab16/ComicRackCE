@@ -4392,6 +4392,7 @@ namespace cYo.Projects.ComicRack.Viewer
 				PageImageFilterHost.CancelInFlight();
 				PageImageFilterHost.DisableFbcnn();
 				InvalidateArtifactReductionPages();
+				ComicDisplay?.RefreshDisplay();
 				return true;
 			}
 			if (string.IsNullOrWhiteSpace(onnxModelPath))
@@ -4402,14 +4403,9 @@ namespace cYo.Projects.ComicRack.Viewer
 			try
 			{
 				Cursor.Current = Cursors.WaitCursor;
+				// Fail closed quietly for the host; plugin owns the user-facing MessageBox.
 				if (!PageImageFilterHost.EnableFbcnn(onnxModelPath, 1024, out string error))
 				{
-					AskQuestion(
-						string.IsNullOrEmpty(error)
-							? "Could not enable artifact reduction (model missing or failed to load)."
-							: error,
-						"OK",
-						null);
 					return false;
 				}
 				InvalidateArtifactReductionPages();
@@ -4426,7 +4422,8 @@ namespace cYo.Projects.ComicRack.Viewer
 		{
 			try
 			{
-				Program.ImagePool.Pages.MemoryCache.Clear(evenLocked: true);
+				// Avoid Clear(evenLocked: true) — can dispose bitmaps still held by the reader.
+				Program.ImagePool.Pages.RemoveKeys(k => true);
 			}
 			catch
 			{

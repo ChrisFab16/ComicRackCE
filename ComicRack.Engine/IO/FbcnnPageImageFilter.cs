@@ -42,6 +42,7 @@ namespace cYo.Projects.ComicRack.Engine.IO
 		private readonly FbcnnOnnxRunner runner = new FbcnnOnnxRunner();
 		private ReaderWindowFilterState state = new ReaderWindowFilterState();
 		private CancellationTokenSource cts = new CancellationTokenSource();
+		private readonly object ctsGate = new object();
 		private int processing;
 
 		public event EventHandler StatusChanged;
@@ -58,10 +59,13 @@ namespace cYo.Projects.ComicRack.Engine.IO
 
 		public bool IsEnabled => state.Enabled && runner.IsLoaded;
 
+		/// <summary>True when the ONNX session is loaded (window Enabled may still be false).</summary>
+		public bool IsLoadedEnough => runner.IsLoaded;
+
 		public bool TryEnable(string onnxPath, int maxLongEdge, out string error)
 		{
 			error = string.Empty;
-			CancelWork();
+			CancelWork(replaceToken: true);
 			runner.MaxLongEdge = maxLongEdge > 0 ? maxLongEdge : 1024;
 			if (!runner.TryLoad(onnxPath, out error))
 			{
@@ -72,26 +76,57 @@ namespace cYo.Projects.ComicRack.Engine.IO
 			state.Enabled = true;
 			state.ModelPath = onnxPath;
 			state.MaxLongEdge = runner.MaxLongEdge;
-			cts = new CancellationTokenSource();
 			SetStatus("Artifact reduction on");
 			return true;
 		}
 
 		public void Disable()
 		{
-			CancelWork();
+			CancelWork(replaceToken: true);
 			state.Enabled = false;
 			SetStatus(string.Empty);
 		}
 
-		public void CancelWork()
+		public void SyncFromWindowState(ReaderWindowFilterState windowState)
 		{
-			try
+			if (windowState == null)
 			{
-				cts.Cancel();
+				return;
 			}
-			catch
+			state.ModelPath = windowState.ModelPath;
+			state.ModelId = windowState.ModelId;
+			state.QualityMode = windowState.QualityMode;
+			state.QualityFactor = windowState.QualityFactor;
+			state.MaxLongEdge = windowState.MaxLongEdge > 0 ? windowState.MaxLongEdge : 1024;
+			runner.MaxLongEdge = state.MaxLongEdge;
+		}
+
+		/// <summary>
+		/// Cancel in-flight work. ORT Run cannot abort mid-call; after cancel, token is replaced
+		/// so later Apply calls are not stuck cancelled while still enabled.
+		/// </summary>
+		public void CancelWork(bool replaceToken = true)
+		{
+			lock (ctsGate)
 			{
+				try
+				{
+					cts.Cancel();
+				}
+				catch
+				{
+				}
+				if (replaceToken)
+				{
+					try
+					{
+						cts.Dispose();
+					}
+					catch
+					{
+					}
+					cts = new CancellationTokenSource();
+				}
 			}
 			Interlocked.Exchange(ref processing, 0);
 		}
@@ -102,11 +137,29 @@ namespace cYo.Projects.ComicRack.Engine.IO
 			{
 				return source;
 			}
+			return ApplyLoaded(source);
+		}
+
+		/// <summary>
+		/// Run inference when the ONNX session is loaded, ignoring per-window Enabled.
+		/// Used when applying for a cache key whose fingerprint was captured while a window was on.
+		/// </summary>
+		public Bitmap ApplyLoaded(Bitmap source)
+		{
+			if (source == null || !runner.IsLoaded)
+			{
+				return source;
+			}
+			CancellationToken token;
+			lock (ctsGate)
+			{
+				token = cts.Token;
+			}
 			Interlocked.Exchange(ref processing, 1);
 			SetStatus("Processing page (FBCNN)...");
 			try
 			{
-				return runner.Apply(source, cts.Token);
+				return runner.Apply(source, token);
 			}
 			catch (OperationCanceledException)
 			{
@@ -136,9 +189,18 @@ namespace cYo.Projects.ComicRack.Engine.IO
 
 		public void Dispose()
 		{
-			CancelWork();
+			CancelWork(replaceToken: false);
 			runner.Dispose();
-			cts.Dispose();
+			lock (ctsGate)
+			{
+				try
+				{
+					cts.Dispose();
+				}
+				catch
+				{
+				}
+			}
 		}
 	}
 }
