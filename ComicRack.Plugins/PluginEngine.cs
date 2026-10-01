@@ -30,6 +30,9 @@ namespace cYo.Projects.ComicRack.Plugins
 
 		public const string ScriptTypeNewBooks = "NewBooks";
 
+		/// <summary>Commands shown in the reader page context menu (not library browser).</summary>
+		public const string ScriptTypeReader = "Reader";
+
 		public const string ScriptTypeBookOpened = "BookOpened";
 
 		public const string ScriptTypeReaderResized = "ReaderResized";
@@ -55,6 +58,8 @@ namespace cYo.Projects.ComicRack.Plugins
 		public const string ScriptDescEditBooks = "Edit/Update Books Commands";
 
 		public const string ScriptDescNewBooks = "Create New Books Commands";
+
+		public const string ScriptDescReader = "Reader Commands";
 
 		public const string ScriptDescParsePath = "Book Path Parsers";
 
@@ -95,6 +100,10 @@ namespace cYo.Projects.ComicRack.Plugins
 			{
                 ScriptTypeBooks,
 				ScriptDescEditBooks
+			},
+			{
+				ScriptTypeReader,
+				ScriptDescReader
 			},
 			{
                 ScriptTypeNewBooks,

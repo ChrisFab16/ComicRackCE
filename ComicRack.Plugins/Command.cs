@@ -219,7 +219,9 @@ namespace cYo.Projects.ComicRack.Plugins
 
 		private string GetThemedImage()
 		{
-			if (Environment?.Theme.CurrentTheme != Themes.Default)
+			// Guard Theme null and Environment null — `Environment?.Theme.CurrentTheme` still NREs when
+			// Environment is set but Theme is null, and `null != Default` wrongly enters the themed branch.
+			if (Environment?.Theme != null && Environment.Theme.CurrentTheme != Themes.Default)
 			{
 				string themeName = Environment.Theme.CurrentTheme.ToString();
 				string themedImage = !string.IsNullOrEmpty(image) ? $"{themeName}{image}" : null; // Find the name of the themed image

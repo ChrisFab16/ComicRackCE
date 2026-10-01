@@ -153,6 +153,10 @@ namespace cYo.Projects.ComicRack.Plugins
 					(ScriptScope s, string n) => s.GetVariable<Action<ComicBook[]>>(n)
 				},
 				{
+					PluginEngine.ScriptTypeReader,
+					(ScriptScope s, string n) => s.GetVariable<Action<ComicBook[]>>(n)
+				},
+				{
                     PluginEngine.ScriptTypeNewBooks,
 					(ScriptScope s, string n) => s.GetVariable<Action<ComicBook[]>>(n)
 				},

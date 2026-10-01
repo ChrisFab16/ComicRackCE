@@ -295,7 +295,19 @@ namespace cYo.Projects.ComicRack.Viewer.Dialogs
 
 		private void btConfigScript_Click(object sender, EventArgs e)
 		{
-			(btConfigScript.Tag as Command)?.Invoke(new object[0], catchErrors: true);
+			Command cfg = btConfigScript.Tag as Command;
+			if (cfg == null)
+			{
+				return;
+			}
+			try
+			{
+				cfg.Invoke(new object[0], catchErrors: false);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(this, ex.Message, TR.Messages["ScriptFailed", "Execution of the script failed!"], MessageBoxButtons.OK, MessageBoxIcon.Hand);
+			}
 		}
 
 		private void lbPaths_DrawItemText(object sender, DrawItemEventArgs e)

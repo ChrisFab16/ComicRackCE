@@ -806,6 +806,20 @@ namespace cYo.Projects.ComicRack.Viewer
 						}, catchErrors: true);
 					};
 				}
+				InstallReaderScriptToolbar();
+				PageImageFilterHost.StatusChanged += (s, e) =>
+				{
+					try
+					{
+						if (!IsDisposed && mainToolStrip != null && mainToolStrip.IsHandleCreated)
+						{
+							BeginInvoke(new Action(RefreshReaderScriptToolbarState));
+						}
+					}
+					catch
+					{
+					}
+				};
 			}
 			Program.StartupProgress(TR.Messages["InitGUI", "Initializing User Interface"], 80);
 		}
@@ -3562,10 +3576,165 @@ namespace cYo.Projects.ComicRack.Viewer
 				enumMenuUtility.Enabled = enabled;
 				pageTypeContextMenu.Value = (int)pageEditor.PageType;
 				pageRotationContextMenu.Value = (int)pageEditor.Rotation;
+				RebuildReaderScriptMenuItems();
 			}
 			catch
 			{
 				e.Cancel = true;
+			}
+		}
+
+		/// <summary>
+		/// Inject #@Hook Reader plugin commands into the page context menu with ON/OFF check state.
+		/// </summary>
+		private void RebuildReaderScriptMenuItems()
+		{
+			const string readerTag = "reader-script";
+			for (int i = pageContextMenu.Items.Count - 1; i >= 0; i--)
+			{
+				ToolStripItem item = pageContextMenu.Items[i];
+				if (item.Tag as string == readerTag)
+				{
+					pageContextMenu.Items.RemoveAt(i);
+				}
+			}
+			if (!ScriptUtility.Enabled)
+			{
+				return;
+			}
+			ToolStripMenuItem[] items = ScriptUtility.CreateToolItems<ToolStripMenuItem>(
+				this,
+				PluginEngine.ScriptTypeReader,
+				ReaderScriptBooks,
+				predicate: null,
+				isChecked: ReaderScriptIsOn).ToArray();
+			if (items.Length == 0)
+			{
+				return;
+			}
+			var sep = new ToolStripSeparator { Tag = readerTag };
+			pageContextMenu.Items.Add(sep);
+			foreach (ToolStripMenuItem mi in items)
+			{
+				mi.Tag = readerTag;
+				pageContextMenu.Items.Add(mi);
+			}
+		}
+
+		private IEnumerable<ComicBook> ReaderScriptBooks()
+		{
+			if (ComicDisplay?.Book?.Comic != null)
+			{
+				return new[] { ComicDisplay.Book.Comic };
+			}
+			return Enumerable.Empty<ComicBook>();
+		}
+
+		private bool ReaderScriptIsOn(Command c)
+		{
+			return string.Equals(c.Key, "ArtifactCleaner", StringComparison.OrdinalIgnoreCase)
+				&& IsArtifactReductionEnabled;
+		}
+
+		/// <summary>
+		/// Reader toolbar icons for #@Hook Reader scripts (image buttons; checked when filter on).
+		/// </summary>
+		private void InstallReaderScriptToolbar()
+		{
+			const string readerTbTag = "reader-script-tb";
+			for (int i = mainToolStrip.Items.Count - 1; i >= 0; i--)
+			{
+				if (mainToolStrip.Items[i].Tag as string == readerTbTag)
+				{
+					mainToolStrip.Items.RemoveAt(i);
+				}
+			}
+			if (!ScriptUtility.Enabled)
+			{
+				return;
+			}
+			List<ToolStripItem> list = new List<ToolStripItem>();
+			// Prefer CommandImage (loaded bitmap). Image is the filename string — Books toolbar uses the same.
+			// Always include Reader scripts even without icon so the control is never silently omitted.
+			list.AddRange(ScriptUtility.CreateToolItems<ToolStripSplitButton>(
+				this,
+				PluginEngine.ScriptTypeReader,
+				ReaderScriptBooks,
+				c => c.Configure != null,
+				ReaderScriptIsOn));
+			list.AddRange(ScriptUtility.CreateToolItems<ToolStripButton>(
+				this,
+				PluginEngine.ScriptTypeReader,
+				ReaderScriptBooks,
+				c => c.Configure == null,
+				ReaderScriptIsOn));
+			if (list.Count == 0)
+			{
+				return;
+			}
+			// Insert before tbTools (Overflow=Never). Appending after a packed
+			// HorizontalStackWithOverflow strip hides new items behind the » chevron.
+			int insertAt = mainToolStrip.Items.IndexOf(tbTools);
+			if (insertAt < 0)
+			{
+				insertAt = mainToolStrip.Items.Count;
+			}
+			var sep = new ToolStripSeparator
+			{
+				Tag = readerTbTag,
+				Overflow = ToolStripItemOverflow.Never
+			};
+			mainToolStrip.Items.Insert(insertAt++, sep);
+			foreach (ToolStripItem item in list)
+			{
+				item.Tag = readerTbTag;
+				item.Overflow = ToolStripItemOverflow.Never;
+				item.DisplayStyle = item.Image != null
+					? ToolStripItemDisplayStyle.Image
+					: ToolStripItemDisplayStyle.ImageAndText;
+				// After click, refresh check/tooltip (toggle scripts flip host state).
+				item.Click += (s, e) => BeginInvoke(new Action(RefreshReaderScriptToolbarState));
+				if (item is ToolStripSplitButton split)
+				{
+					split.ButtonClick += (s, e) => BeginInvoke(new Action(RefreshReaderScriptToolbarState));
+				}
+				mainToolStrip.Items.Insert(insertAt++, item);
+			}
+		}
+
+		private void RefreshReaderScriptToolbarState()
+		{
+			const string readerTbTag = "reader-script-tb";
+			if (mainToolStrip == null)
+			{
+				return;
+			}
+			foreach (ToolStripItem item in mainToolStrip.Items)
+			{
+				if (item.Tag as string != readerTbTag || item is ToolStripSeparator)
+				{
+					continue;
+				}
+				bool on = IsArtifactReductionEnabled;
+				string name = item.Text;
+				// Prefer original command name from tooltip base
+				if (item is ToolStripButton btn)
+				{
+					btn.Checked = on;
+					string baseName = btn.ToolTipText ?? btn.Text ?? "Artifact Cleaner";
+					baseName = baseName.Replace(" [ON]", "").Replace(" [OFF]", "");
+					btn.ToolTipText = baseName + (on ? " [ON]" : " [OFF]");
+				}
+				else if (item is ToolStripSplitButton split)
+				{
+					string baseName = split.ToolTipText ?? split.Text ?? "Artifact Cleaner";
+					baseName = baseName.Replace(" [ON]", "").Replace(" [OFF]", "");
+					split.ToolTipText = baseName + (on ? " [ON]" : " [OFF]");
+					// Visual pressed affordance via font when Checked is unavailable
+					split.Font = on
+						? new Font(mainToolStrip.Font, FontStyle.Bold)
+						: mainToolStrip.Font;
+				}
 			}
 		}
 
@@ -4369,12 +4538,21 @@ namespace cYo.Projects.ComicRack.Viewer
 			}
 		}
 
-		public bool IsArtifactReductionEnabled => !string.IsNullOrEmpty(PageImageFilterHost.CurrentFingerprint);
+		public bool IsArtifactReductionEnabled
+		{
+			get
+			{
+				// Align with ComicDisplayControl.GetPageKey window key before reading fingerprint.
+				PageImageFilterHost.SetCurrentWindow(ComicDisplay?.PageFilterWindowKey);
+				return !string.IsNullOrEmpty(PageImageFilterHost.CurrentFingerprint);
+			}
+		}
 
 		public string ArtifactReductionStatus
 		{
 			get
 			{
+				PageImageFilterHost.SetCurrentWindow(ComicDisplay?.PageFilterWindowKey);
 				string status = PageImageFilterHost.StatusText;
 				if (!string.IsNullOrEmpty(status))
 				{
@@ -4386,13 +4564,14 @@ namespace cYo.Projects.ComicRack.Viewer
 
 		public bool SetArtifactReductionEnabled(bool enabled, string onnxModelPath)
 		{
-			PageImageFilterHost.SetCurrentWindow(ComicDisplay);
+			PageImageFilterHost.SetCurrentWindow(ComicDisplay?.PageFilterWindowKey);
 			if (!enabled)
 			{
 				PageImageFilterHost.CancelInFlight();
 				PageImageFilterHost.DisableFbcnn();
 				InvalidateArtifactReductionPages();
 				ComicDisplay?.RefreshDisplay();
+				RefreshReaderScriptToolbarState();
 				return true;
 			}
 			if (string.IsNullOrWhiteSpace(onnxModelPath))
@@ -4404,12 +4583,14 @@ namespace cYo.Projects.ComicRack.Viewer
 			{
 				Cursor.Current = Cursors.WaitCursor;
 				// Fail closed quietly for the host; plugin owns the user-facing MessageBox.
-				if (!PageImageFilterHost.EnableFbcnn(onnxModelPath, 1024, out string error))
+				if (!PageImageFilterHost.EnableFbcnn(onnxModelPath, 768, out string error))
 				{
+					RefreshReaderScriptToolbarState();
 					return false;
 				}
 				InvalidateArtifactReductionPages();
 				ComicDisplay?.RefreshDisplay();
+				RefreshReaderScriptToolbarState();
 				return true;
 			}
 			finally

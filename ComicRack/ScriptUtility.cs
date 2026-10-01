@@ -118,7 +118,7 @@ namespace cYo.Projects.ComicRack.Viewer
 			}
 		}
 
-		public static T CreateToolItem<T>(Control parent, Command command, Func<IEnumerable<ComicBook>> books) where T : ToolStripItem, new()
+		public static T CreateToolItem<T>(Control parent, Command command, Func<IEnumerable<ComicBook>> books, Func<Command, bool> isChecked = null) where T : ToolStripItem, new()
 		{
 			T val = new T();
 			val.Text = command.GetLocalizedName();
@@ -143,8 +143,20 @@ namespace cYo.Projects.ComicRack.Viewer
 				{
 					tssb.DropDownItems.Add(TR.Default["Configure"] + "...", null, delegate
 					{
-						command.Configure.Invoke(null, catchErrors: true);
+						InvokeConfigure(parent, command.Configure);
 					});
+				}
+				if (isChecked != null)
+				{
+					bool on = false;
+					try
+					{
+						on = isChecked(command);
+					}
+					catch
+					{
+					}
+					tssb.ToolTipText = command.GetLocalizedName() + (on ? " [ON]" : " [OFF]");
 				}
 			}
 			else
@@ -153,6 +165,43 @@ namespace cYo.Projects.ComicRack.Viewer
 				{
 					CreateBookCode(parent, command, books);
 				};
+				if (val2 is ToolStripMenuItem mi)
+				{
+					if (command.Configure != null)
+					{
+						mi.DropDownItems.Add(TR.Default["Configure"] + "...", null, delegate
+						{
+							InvokeConfigure(parent, command.Configure);
+						});
+					}
+					if (isChecked != null)
+					{
+						bool on = false;
+						try
+						{
+							on = isChecked(command);
+						}
+						catch
+						{
+						}
+						mi.Checked = on;
+						mi.Text = command.GetLocalizedName() + (on ? " [ON]" : " [OFF]");
+					}
+				}
+				else if (val2 is ToolStripButton btn && isChecked != null)
+				{
+					bool on = false;
+					try
+					{
+						on = isChecked(command);
+					}
+					catch
+					{
+					}
+					btn.CheckOnClick = false;
+					btn.Checked = on;
+					btn.ToolTipText = command.GetLocalizedName() + (on ? " [ON]" : " [OFF]");
+				}
 			}
 			if (val2 is ToolStripMenuItem)
 			{
@@ -161,7 +210,26 @@ namespace cYo.Projects.ComicRack.Viewer
 			return val2;
 		}
 
-		public static IEnumerable<T> CreateToolItems<T>(Control parent, string scriptType, Func<IEnumerable<ComicBook>> books, Func<Command, bool> predicate = null) where T : ToolStripItem, new()
+		public static void InvokeConfigure(IWin32Window parent, Command configure)
+		{
+			if (configure == null)
+			{
+				return;
+			}
+			try
+			{
+				using (new WaitCursor())
+				{
+					configure.Invoke(new object[0], catchErrors: false);
+				}
+			}
+			catch (Exception ex)
+			{
+				ShowError(parent, ex);
+			}
+		}
+
+		public static IEnumerable<T> CreateToolItems<T>(Control parent, string scriptType, Func<IEnumerable<ComicBook>> books, Func<Command, bool> predicate = null, Func<Command, bool> isChecked = null) where T : ToolStripItem, new()
 		{
 			if (Scripts == null)
 			{
@@ -169,7 +237,7 @@ namespace cYo.Projects.ComicRack.Viewer
 			}
 			return from command in Scripts.GetCommands(scriptType)
 				where predicate == null || predicate(command)
-				select CreateToolItem<T>(parent, command, books);
+				select CreateToolItem<T>(parent, command, books, isChecked);
 		}
 
 		public static void ShowError(IWin32Window parent, Exception ex)

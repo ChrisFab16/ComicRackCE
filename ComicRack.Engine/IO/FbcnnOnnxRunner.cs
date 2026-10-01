@@ -12,6 +12,7 @@ namespace cYo.Projects.ComicRack.Engine.IO
 {
 	/// <summary>
 	/// Lazy ONNX Runtime session for FBCNN color model (display-only; never writes archives).
+	/// Prefers DirectML GPU EP when available; falls back to CPU (FR-021).
 	/// Inference is serialized: InferenceSession.Run is not concurrent-safe.
 	/// CancellationToken is checked around work; ORT Run itself cannot be aborted mid-call.
 	/// </summary>
@@ -21,11 +22,24 @@ namespace cYo.Projects.ComicRack.Engine.IO
 		private InferenceSession session;
 		private string modelPath;
 		private string lastError = string.Empty;
+		private string activeExecutionProvider = "CPU";
 		private int maxLongEdge = 1024;
 
 		public string LastError => lastError;
 
 		public string ModelPath => modelPath;
+
+		/// <summary>Active ORT EP after last successful load: <c>DirectML</c> or <c>CPU</c>.</summary>
+		public string ActiveExecutionProvider
+		{
+			get
+			{
+				lock (gate)
+				{
+					return activeExecutionProvider;
+				}
+			}
+		}
 
 		public int MaxLongEdge
 		{
@@ -56,23 +70,88 @@ namespace cYo.Projects.ComicRack.Engine.IO
 			lock (gate)
 			{
 				DisposeSession_NoLock();
-				try
+				string epUsed;
+				if (!TryCreateSession(fullPath, preferGpu: true, out session, out epUsed, out error))
 				{
-					var opts = new SessionOptions();
-					session = new InferenceSession(fullPath, opts);
-					modelPath = fullPath;
-					lastError = string.Empty;
-					return true;
-				}
-				catch (Exception ex)
-				{
-					error = ex.Message;
 					lastError = error;
 					session = null;
 					modelPath = null;
+					activeExecutionProvider = "CPU";
 					return false;
 				}
+				modelPath = fullPath;
+				activeExecutionProvider = epUsed;
+				lastError = string.Empty;
+				return true;
 			}
+		}
+
+		/// <summary>
+		/// Create session: try DirectML first, then CPU-only. Never throws for missing GPU.
+		/// </summary>
+		private static bool TryCreateSession(
+			string fullPath,
+			bool preferGpu,
+			out InferenceSession created,
+			out string epUsed,
+			out string error)
+		{
+			created = null;
+			epUsed = "CPU";
+			error = string.Empty;
+
+			if (preferGpu)
+			{
+				try
+				{
+					using (SessionOptions opts = CreateBaseOptions())
+					{
+						// DirectML EP (Microsoft.ML.OnnxRuntime.DirectML) — any DX12 GPU.
+						opts.AppendExecutionProvider_DML(0);
+						created = new InferenceSession(fullPath, opts);
+						epUsed = "DirectML";
+						return true;
+					}
+				}
+				catch (Exception dmlEx)
+				{
+					error = "DirectML unavailable (" + dmlEx.Message + "); using CPU";
+					// fall through to CPU
+				}
+			}
+
+			try
+			{
+				using (SessionOptions opts = CreateBaseOptions())
+				{
+					created = new InferenceSession(fullPath, opts);
+					epUsed = "CPU";
+					// Prefer GPU path's advisory message only if DML failed; clear for pure CPU success
+					if (string.IsNullOrEmpty(error) || error.StartsWith("DirectML", StringComparison.Ordinal))
+					{
+						error = string.Empty;
+					}
+					return true;
+				}
+			}
+			catch (Exception ex)
+			{
+				error = ex.Message;
+				created = null;
+				return false;
+			}
+		}
+
+		private static SessionOptions CreateBaseOptions()
+		{
+			return new SessionOptions
+			{
+				// Cap CPU IntraOp when on CPU EP; with DirectML, GPU does most work.
+				IntraOpNumThreads = Math.Max(1, Math.Min(2, Environment.ProcessorCount)),
+				InterOpNumThreads = 1,
+				ExecutionMode = ExecutionMode.ORT_SEQUENTIAL,
+				GraphOptimizationLevel = GraphOptimizationLevel.ORT_ENABLE_BASIC
+			};
 		}
 
 		public void Unload()
@@ -271,6 +350,7 @@ namespace cYo.Projects.ComicRack.Engine.IO
 				session.Dispose();
 				session = null;
 			}
+			activeExecutionProvider = "CPU";
 		}
 
 		public void Dispose()

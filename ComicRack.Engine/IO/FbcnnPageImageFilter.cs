@@ -76,7 +76,7 @@ namespace cYo.Projects.ComicRack.Engine.IO
 			state.Enabled = true;
 			state.ModelPath = onnxPath;
 			state.MaxLongEdge = runner.MaxLongEdge;
-			SetStatus("Artifact reduction on");
+			SetStatus("Artifact reduction on (" + runner.ActiveExecutionProvider + ")");
 			return true;
 		}
 
@@ -156,14 +156,14 @@ namespace cYo.Projects.ComicRack.Engine.IO
 				token = cts.Token;
 			}
 			Interlocked.Exchange(ref processing, 1);
-			SetStatus("Processing page (FBCNN)...");
+			// Do not SetStatus on every Apply — floods StatusChanged → UI BeginInvoke and
+			// amplifies perceived load while prefetch queues many pages.
 			try
 			{
 				return runner.Apply(source, token);
 			}
 			catch (OperationCanceledException)
 			{
-				SetStatus("Cancelled");
 				return source;
 			}
 			catch (Exception ex)
@@ -174,10 +174,6 @@ namespace cYo.Projects.ComicRack.Engine.IO
 			finally
 			{
 				Interlocked.Exchange(ref processing, 0);
-				if (state.Enabled)
-				{
-					SetStatus("Artifact reduction on");
-				}
 			}
 		}
 

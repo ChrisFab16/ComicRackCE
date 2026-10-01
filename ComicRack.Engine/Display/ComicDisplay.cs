@@ -36,6 +36,12 @@ namespace cYo.Projects.ComicRack.Engine.Display
 
 		private ContainerControl control;
 
+		/// <summary>
+		/// Per-window filter dictionary key. Must match <c>ComicDisplayControl.GetPageKey</c>
+		/// which calls <c>PageImageFilterHost.SetCurrentWindow(this)</c> on the control.
+		/// </summary>
+		public object PageFilterWindowKey => display ?? (object)"default";
+
 		private float scrollLines = 1f;
 
 		private KeySearch pageKeys;
